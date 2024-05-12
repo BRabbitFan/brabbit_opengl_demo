@@ -1,4 +1,10 @@
+#include <iostream>
+
+#include <glad/glad.h>
+
 #include <GLFW/glfw3.h>
+
+#include <GL/gl.h>
 
 namespace brabbit {
 
@@ -13,6 +19,10 @@ auto main(int argc, char** argv) -> int {
     return -1;
   }
 
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
   auto* const window = glfwCreateWindow(brabbit::WIDNOW_DEFAULT_WIDTH,
                                         brabbit::WIDNOW_DEFAULT_HEIGHT,
                                         brabbit::WIDNOW_DEFAULT_TITLE,
@@ -24,6 +34,20 @@ auto main(int argc, char** argv) -> int {
   }
 
   glfwMakeContextCurrent(window);
+
+  if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+    glfwTerminate();
+    return -1;
+  }
+
+  if (const auto* version = glGetString(GL_VERSION); version) {
+    std::cout << "OpenGL version: " << version << std::endl;
+  }
+
+  glViewport(0, 0, brabbit::WIDNOW_DEFAULT_WIDTH, brabbit::WIDNOW_DEFAULT_HEIGHT);
+  glfwSetFramebufferSizeCallback(window, [](GLFWwindow* window, int width, int height) {
+    glViewport(0, 0, width, height);
+  });
 
   do {
     auto* const monitor = glfwGetPrimaryMonitor();
