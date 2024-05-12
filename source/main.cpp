@@ -22,6 +22,7 @@ auto main(int argc, char** argv) -> int {
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+  // glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, GLFW_TRUE);
 
   auto* const window = glfwCreateWindow(brabbit::WIDNOW_DEFAULT_WIDTH,
                                         brabbit::WIDNOW_DEFAULT_HEIGHT,
@@ -65,6 +66,8 @@ auto main(int argc, char** argv) -> int {
                     (monitor_video_mode->height - brabbit::WIDNOW_DEFAULT_HEIGHT) / 2);
   } while (false);
 
+  // glfwSetWindowOpacity(window, .5f);
+
   glfwSetKeyCallback(window, [](GLFWwindow* window, int key, int scancode, int action, int mods) {
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
       glfwSetWindowShouldClose(window, true);
@@ -72,6 +75,7 @@ auto main(int argc, char** argv) -> int {
   });
 
   while (!glfwWindowShouldClose(window)) {
+    glClearColor(1.f, 1.f, 1.f, 1.f);
     glClear(GL_COLOR_BUFFER_BIT);  // render here
     glfwSwapBuffers(window);  // swap front and back buffers
     glfwPollEvents();  // poll for and process events
