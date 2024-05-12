@@ -1,0 +1,16 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "msvc--opengl_demo",
+      "type": "cppvsdbg",
+      "request": "launch",
+      "cwd": "${fileDirname}",
+      "program": "${workspaceFolder}/build/opengl_demo.exe",
+      "args": [],
+      "environment": [],
+      "stopAtEntry": false,
+      "console": "integratedTerminal"
+    }
+  ]
+}

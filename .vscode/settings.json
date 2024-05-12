@@ -1,0 +1,13 @@
+{
+  "C_Cpp.intelliSenseEngine": "disabled",
+
+  "cmake.generator": "Ninja",
+  "cmake.configureSettings": {
+    // "CMAKE_EXE_LINKER_FLAGS": "/NODEFAULTLIB:MSVCRT",
+  },
+
+  "clangd.fallbackFlags": [
+    // "-I${workspaceFolder}/library/glfw/include"
+  ],
+  "commentTranslate.hover.enabled": true,
+}
