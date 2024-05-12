@@ -65,6 +65,12 @@ auto main(int argc, char** argv) -> int {
                     (monitor_video_mode->height - brabbit::WIDNOW_DEFAULT_HEIGHT) / 2);
   } while (false);
 
+  glfwSetKeyCallback(window, [](GLFWwindow* window, int key, int scancode, int action, int mods) {
+    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
+      glfwSetWindowShouldClose(window, true);
+    }
+  });
+
   while (!glfwWindowShouldClose(window)) {
     glClear(GL_COLOR_BUFFER_BIT);  // render here
     glfwSwapBuffers(window);  // swap front and back buffers
