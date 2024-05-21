@@ -43,6 +43,9 @@ auto main(int argc, char** argv) -> int {
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
   // glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, GLFW_TRUE);
+#ifdef __APPLE__
+  glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
+#endif
 
 
 
@@ -96,52 +99,6 @@ auto main(int argc, char** argv) -> int {
 
 
 
-  // Create and bind a VAO(Vertex Array Object)
-  unsigned int VAO;
-  glGenVertexArrays(1, &VAO);
-  glBindVertexArray(VAO);
-
-
-
-  // Generate a VBO(Vertex Buffer Object) buffer.
-  // This buffer is use to send Vertex data to GPU from CPU.
-  unsigned int VBO;
-  glGenBuffers(1, &VBO);
-
-  // Bind VBO buffer to GL_ARRAY_BUFFER(array buffer) target.
-  // From now on, any function call in this target will action on our VBO buffer.
-  glBindBuffer(GL_ARRAY_BUFFER, VBO);
-
-  float vertices[] = {
-    -0.5f, -0.5f, 0.0f,  // point{ x, y, z }
-     0.5f, -0.5f, 0.0f,  // point{ x, y, z }
-     0.0f,  0.5f, 0.0f,  // point{ x, y, z }
-  };
-
-  // Copy real vertices data into VBO buffer.
-  // param 4:
-  // GL_STATIC_DRAW: The data will never or rarely change.
-  // GL_DYNAMIC_DRAW：The data will be changed a lot.
-  // GL_STREAM_DRAW：The data changes every time it is plotted.
-  glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-
-
-  // Tell GPU how to decode our vertices data.
-  // Set attribute pointer's infomation about our vertices data. (save in VAO)
-  // param 1: [int] location index in vertex shader source: 'layout(location = 0)'
-  // param 2: [int] size of data, 3 means it's a 'vec3' attribute
-  // param 3: [enum] type of data, GL_FLOAT means float (of course..)
-  // param 4: [bool] need to normalize or not, GL_TRUE or GL_FALSE
-  // param 5: [int] stride, data's stride between each group
-  // param 6: [(void*)int] offset, offset of data's begin position
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-  // Make data attribute in location 0 enabled
-  // Call the 'glDisableVertexAttribArray' in some where to disabled it.
-  glEnableVertexAttribArray(0);
-
-
-
   // Create a vertex shader object.
   auto vertex_shader = glCreateShader(GL_VERTEX_SHADER);
   // Set shader's source and compile it.
@@ -188,13 +145,59 @@ auto main(int argc, char** argv) -> int {
     std::cout << "[error] create shader program object error :\n  " << message << std::endl;
   }
 
-  // The shader program object created allready, let's use it!
-  // Actrualy action here: our shaders will send to GPU.
-  glUseProgram(shader_program);
-
-  // The GPU allready got the shader, we don't need then anymore.
+  // shader_program allready got the shaders, we don't need then anymore.
   glDeleteShader(vertex_shader);
   glDeleteShader(fragment_shader);
+
+
+
+  // Create and bind a VAO(Vertex Array Object)
+  unsigned int VAO;
+  glGenVertexArrays(1, &VAO);
+  // Load attributes in VAO
+  glBindVertexArray(VAO);
+
+
+
+  // Generate a VBO(Vertex Buffer Object) buffer.
+  // This buffer is use to send Vertex data to GPU from CPU.
+  unsigned int VBO;
+  glGenBuffers(1, &VBO);
+
+  // Bind VBO buffer to GL_ARRAY_BUFFER(array buffer) target.
+  // From now on, any function call in this target will action on our VBO buffer.
+  glBindBuffer(GL_ARRAY_BUFFER, VBO);
+
+
+
+  // real vertices data
+  float vertices[] = {
+    -0.5f, -0.5f, 0.0f,  // point{ x, y, z }
+     0.5f, -0.5f, 0.0f,  // point{ x, y, z }
+     0.0f,  0.5f, 0.0f,  // point{ x, y, z }
+  };
+
+  // Copy real vertices data into VBO buffer.
+  // param 4:
+  // GL_STATIC_DRAW: The data will never or rarely change.
+  // GL_DYNAMIC_DRAW：The data will be changed a lot.
+  // GL_STREAM_DRAW：The data changes every time it is plotted.
+  glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+
+
+  // Tell GPU how to decode our vertices data.
+  // Set attribute pointer's infomation about our vertices data. (save in VAO)
+  // param 1: [int] location index in vertex shader source: 'layout(location = 0)'
+  // param 2: [int] size of data, 3 means it's a 'vec3' attribute
+  // param 3: [enum] type of data, GL_FLOAT means float (of course..)
+  // param 4: [bool] need to normalize or not, GL_TRUE or GL_FALSE
+  // param 5: [int] stride, data's stride between each group
+  // param 6: [(void*)int] offset, offset of data's begin position
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+  // Make data attribute in location 0 enabled
+  // Call the 'glDisableVertexAttribArray' in some where to disabled it.
+  glEnableVertexAttribArray(0);
 
 
 
@@ -208,14 +211,21 @@ auto main(int argc, char** argv) -> int {
   while (!glfwWindowShouldClose(window)) {
     glClearColor(1.f, 1.f, 1.f, 1.f);
     glClear(GL_COLOR_BUFFER_BIT);  // render here
-    glfwSwapBuffers(window);  // swap front and back buffers
 
+    // The shader program object created allready, let's use it!
+    // Actrualy action here: our shaders will send to GPU.
     glUseProgram(shader_program);
+
     // Load attributes in VAO
     glBindVertexArray(VAO);
-    // Draw the triangle in VBO
+
+    // Draw the triangle
+    // param 1: [enum] type to draw
+    // param 2: [int] first index of vertex array
+    // param 3: [int] vertex count
     glDrawArrays(GL_TRIANGLES, 0, 3);
 
+    glfwSwapBuffers(window);  // swap front and back buffers
     glfwPollEvents();  // poll for and process events
   }
 
