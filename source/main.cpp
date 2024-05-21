@@ -162,10 +162,10 @@ auto main(int argc, char** argv) -> int {
   // real vertices data
   float vertices[] = {
     // { x, y, z }
-    -0.5f, -0.5f, 0.0f,
-     0.5f, -0.5f, 0.0f,
-     0.0f,  0.5f, 0.0f,
-     0.5f,  0.5f, 0.0f,
+    -0.75f, -0.5f, 0.0f,
+     0.50f, -0.5f, 0.0f,
+    -0.50f,  0.5f, 0.0f,
+     0.75f,  0.5f, 0.0f,
   };
 
   // Generate a VBO(Vertex Buffer Object) buffer.
