@@ -159,6 +159,15 @@ auto main(int argc, char** argv) -> int {
 
 
 
+  // real vertices data
+  float vertices[] = {
+    // { x, y, z }
+    -0.5f, -0.5f, 0.0f,
+     0.5f, -0.5f, 0.0f,
+     0.0f,  0.5f, 0.0f,
+     0.5f,  0.5f, 0.0f,
+  };
+
   // Generate a VBO(Vertex Buffer Object) buffer.
   // This buffer is use to send Vertex data to GPU from CPU.
   unsigned int VBO;
@@ -168,21 +177,26 @@ auto main(int argc, char** argv) -> int {
   // From now on, any function call in this target will action on our VBO buffer.
   glBindBuffer(GL_ARRAY_BUFFER, VBO);
 
-
-
-  // real vertices data
-  float vertices[] = {
-    -0.5f, -0.5f, 0.0f,  // point{ x, y, z }
-     0.5f, -0.5f, 0.0f,  // point{ x, y, z }
-     0.0f,  0.5f, 0.0f,  // point{ x, y, z }
-  };
-
   // Copy real vertices data into VBO buffer.
   // param 4:
   // GL_STATIC_DRAW: The data will never or rarely change.
   // GL_DYNAMIC_DRAW：The data will be changed a lot.
   // GL_STREAM_DRAW：The data changes every time it is plotted.
   glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+
+
+  // index list
+  unsigned int indices[] = {
+    0, 1, 2,  // first triangle
+    1, 2, 3,  // second triangle
+  };
+
+  // EBO (Element Buffer Object)
+  unsigned int EBO;
+  glGenBuffers(1, &EBO);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
 
 
