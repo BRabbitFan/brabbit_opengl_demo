@@ -1,25 +1,11 @@
 #pragma once
 
 #include <string_view>
-#include <tuple>
 
 #include <glad/glad.h>
+#include <glm/glm.hpp>
 
 namespace brabbit {
-
-  using GLvec2 = std::tuple<GLfloat, GLfloat>;
-  using GLvec3 = std::tuple<GLfloat, GLfloat, GLfloat>;
-  using GLvec4 = std::tuple<GLfloat, GLfloat, GLfloat, GLfloat>;
-
-  using GLivec2 = std::tuple<GLint, GLint>;
-  using GLivec3 = std::tuple<GLint, GLint, GLint>;
-  using GLivec4 = std::tuple<GLint, GLint, GLint, GLint>;
-
-  using GLuvec2 = std::tuple<GLuint, GLuint>;
-  using GLuvec3 = std::tuple<GLuint, GLuint, GLuint>;
-  using GLuvec4 = std::tuple<GLuint, GLuint, GLuint, GLuint>;
-
-
 
   class Shader {
     Shader(const Shader&) = delete;
@@ -40,17 +26,17 @@ namespace brabbit {
 
    protected:
     auto setFloat(std::string_view name, GLfloat value) const -> void;
-    auto setVec2(std::string_view name, GLvec2 value) const -> void;
-    auto setVec3(std::string_view name, GLvec3 value) const -> void;
-    auto setVec4(std::string_view name, GLvec4 value) const -> void;
+    auto setVec2(std::string_view name, glm::vec2 value) const -> void;
+    auto setVec3(std::string_view name, glm::vec3 value) const -> void;
+    auto setVec4(std::string_view name, glm::vec4 value) const -> void;
     auto setInt(std::string_view name, GLint value) const -> void;
-    auto setIvec2(std::string_view name, GLivec2 value) const -> void;
-    auto setIvec3(std::string_view name, GLivec3 value) const -> void;
-    auto setIvec4(std::string_view name, GLivec4 value) const -> void;
+    auto setIvec2(std::string_view name, glm::ivec2 value) const -> void;
+    auto setIvec3(std::string_view name, glm::ivec3 value) const -> void;
+    auto setIvec4(std::string_view name, glm::ivec4 value) const -> void;
     auto setUint(std::string_view name, GLuint value) const -> void;
-    auto setUvec2(std::string_view name, GLuvec2 value) const -> void;
-    auto setUvec3(std::string_view name, GLuvec3 value) const -> void;
-    auto setUvec4(std::string_view name, GLuvec4 value) const -> void;
+    auto setUvec2(std::string_view name, glm::uvec2 value) const -> void;
+    auto setUvec3(std::string_view name, glm::uvec3 value) const -> void;
+    auto setUvec4(std::string_view name, glm::uvec4 value) const -> void;
 
    private:
     auto getLocation(std::string_view name) const -> GLint;
@@ -66,7 +52,7 @@ namespace brabbit {
     virtual ~CubeShader() override = default;
 
    public:
-    auto setGlobalColor(GLvec4 color) const -> void;
+    auto setGlobalColor(glm::vec4 color) const -> void;
   };
 
 }  // namespace brabbit

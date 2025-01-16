@@ -67,64 +67,55 @@ namespace brabbit {
     glUniform1f(getLocation(name), value);
   }
 
-  auto Shader::setVec2(std::string_view name, GLvec2 value) const -> void {
-    auto& [v0, v1] = value;
-    glUniform2f(getLocation(name), v0, v1);
+  auto Shader::setVec2(std::string_view name, glm::vec2 value) const -> void {
+    glUniform2f(getLocation(name), value.x, value.y);
   }
 
-  auto Shader::setVec3(std::string_view name, GLvec3 value) const -> void {
-    auto& [v0, v1, v2] = value;
-    glUniform3f(getLocation(name), v0, v1, v2);
+  auto Shader::setVec3(std::string_view name, glm::vec3 value) const -> void {
+    glUniform3f(getLocation(name), value.x, value.y, value.z);
   }
 
-  auto Shader::setVec4(std::string_view name, GLvec4 value) const -> void {
-    auto& [v0, v1, v2, v3] = value;
-    glUniform4f(getLocation(name), v0, v1, v2, v3);
+  auto Shader::setVec4(std::string_view name, glm::vec4 value) const -> void {
+    glUniform4f(getLocation(name), value.x, value.y, value.z, value.w);
   }
 
   auto Shader::setInt(std::string_view name, GLint value) const -> void {
     glUniform1i(getLocation(name), value);
   }
 
-  auto Shader::setIvec2(std::string_view name, GLivec2 value) const -> void {
-    auto& [v0, v1] = value;
-    glUniform2i(getLocation(name), v0, v1);
+  auto Shader::setIvec2(std::string_view name, glm::ivec2 value) const -> void {
+    glUniform2i(getLocation(name), value.x, value.y);
   }
 
-  auto Shader::setIvec3(std::string_view name, GLivec3 value) const -> void {
-    auto& [v0, v1, v2] = value;
-    glUniform3i(getLocation(name), v0, v1, v2);
+  auto Shader::setIvec3(std::string_view name, glm::ivec3 value) const -> void {
+    glUniform3i(getLocation(name), value.x, value.y, value.z);
   }
 
-  auto Shader::setIvec4(std::string_view name, GLivec4 value) const -> void {
-    auto& [v0, v1, v2, v3] = value;
-    glUniform4i(getLocation(name), v0, v1, v2, v3);
+  auto Shader::setIvec4(std::string_view name, glm::ivec4 value) const -> void {
+    glUniform4i(getLocation(name), value.x, value.y, value.z, value.w);
   }
 
   auto Shader::setUint(std::string_view name, GLuint value) const -> void {
     glUniform1ui(getLocation(name), value);
   }
 
-  auto Shader::setUvec2(std::string_view name, GLuvec2 value) const -> void {
-    auto& [v0, v1] = value;
-    glUniform2ui(getLocation(name), v0, v1);
+  auto Shader::setUvec2(std::string_view name, glm::uvec2 value) const -> void {
+    glUniform2ui(getLocation(name), value.x, value.y);
   }
 
-  auto Shader::setUvec3(std::string_view name, GLuvec3 value) const -> void {
-    auto& [v0, v1, v2] = value;
-    glUniform3ui(getLocation(name), v0, v1, v2);
+  auto Shader::setUvec3(std::string_view name, glm::uvec3 value) const -> void {
+    glUniform3ui(getLocation(name), value.x, value.y, value.z);
   }
 
-  auto Shader::setUvec4(std::string_view name, GLuvec4 value) const -> void {
-    auto& [v0, v1, v2, v3] = value;
-    glUniform4ui(getLocation(name), v0, v1, v2, v3);
+  auto Shader::setUvec4(std::string_view name, glm::uvec4 value) const -> void {
+    glUniform4ui(getLocation(name), value.x, value.y, value.z, value.w);
   }
 
 
 
   CubeShader::CubeShader() : Shader{ "cube.vs"sv, "cube.fs"sv } {}
 
-  auto CubeShader::setGlobalColor(GLvec4 color) const -> void {
+  auto CubeShader::setGlobalColor(glm::vec4 color) const -> void {
     setVec4("global_color"sv, color);
   }
 
