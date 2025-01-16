@@ -3,8 +3,12 @@
 #include <iostream>
 #include <map>
 
+#include "glm/trigonometric.hpp"
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include <shader.hpp>
 
@@ -197,13 +201,20 @@ auto main(int argc, char** argv) -> int {
     glClear(GL_COLOR_BUFFER_BIT);  // clear buffer use the color we set before
 
     // Use the shader program and update uniform variable
+
     shader.use();
+
     auto time = glfwGetTime();
     GLfloat r = (std::sin(time) / 2.0f) + 0.3f;
     GLfloat g = (std::cos(time) / 2.0f) + 0.4f;
     GLfloat b = (std::sin(time) / 2.0f) + 0.5f;
     GLfloat a = static_cast<int>(time) % 2 == 0 ? 1.0f : 0.0f;
     shader.setGlobalColor({ r, g, b, a });
+
+    auto transform = glm::mat4{ 1.0f };
+    auto radians = glm::radians(static_cast<float>(static_cast<int>(time * 100) % 360));
+    transform = glm::rotate(transform, radians, glm::vec3{ 0.0f, 1.0f, 0.0f });
+    shader.setTransform(transform);
 
     // Load attributes in VAO
     glBindVertexArray(VAO);

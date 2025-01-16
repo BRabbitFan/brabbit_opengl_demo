@@ -3,6 +3,9 @@
 #include <string>
 #include <string_view>
 
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 #include <shader.hpp>
 
 namespace brabbit {
@@ -67,6 +70,14 @@ namespace brabbit {
     glUniform1f(getLocation(name), value);
   }
 
+  auto Shader::setInt(std::string_view name, GLint value) const -> void {
+    glUniform1i(getLocation(name), value);
+  }
+
+  auto Shader::setUint(std::string_view name, GLuint value) const -> void {
+    glUniform1ui(getLocation(name), value);
+  }
+
   auto Shader::setVec2(std::string_view name, glm::vec2 value) const -> void {
     glUniform2f(getLocation(name), value.x, value.y);
   }
@@ -77,10 +88,6 @@ namespace brabbit {
 
   auto Shader::setVec4(std::string_view name, glm::vec4 value) const -> void {
     glUniform4f(getLocation(name), value.x, value.y, value.z, value.w);
-  }
-
-  auto Shader::setInt(std::string_view name, GLint value) const -> void {
-    glUniform1i(getLocation(name), value);
   }
 
   auto Shader::setIvec2(std::string_view name, glm::ivec2 value) const -> void {
@@ -95,10 +102,6 @@ namespace brabbit {
     glUniform4i(getLocation(name), value.x, value.y, value.z, value.w);
   }
 
-  auto Shader::setUint(std::string_view name, GLuint value) const -> void {
-    glUniform1ui(getLocation(name), value);
-  }
-
   auto Shader::setUvec2(std::string_view name, glm::uvec2 value) const -> void {
     glUniform2ui(getLocation(name), value.x, value.y);
   }
@@ -111,12 +114,28 @@ namespace brabbit {
     glUniform4ui(getLocation(name), value.x, value.y, value.z, value.w);
   }
 
+  auto Shader::setMat2(std::string_view name, glm::mat2 value) const -> void {
+    glUniformMatrix2fv(getLocation(name), 1, GL_FALSE, glm::value_ptr(value));
+  }
+
+  auto Shader::setMat3(std::string_view name, glm::mat3 value) const -> void {
+    glUniformMatrix3fv(getLocation(name), 1, GL_FALSE, glm::value_ptr(value));
+  }
+
+  auto Shader::setMat4(std::string_view name, glm::mat4 value) const -> void {
+    glUniformMatrix4fv(getLocation(name), 1, GL_FALSE, glm::value_ptr(value));
+  }
+
 
 
   CubeShader::CubeShader() : Shader{ "cube.vs"sv, "cube.fs"sv } {}
 
   auto CubeShader::setGlobalColor(glm::vec4 color) const -> void {
     setVec4("global_color"sv, color);
+  }
+
+  auto CubeShader::setTransform(glm::mat4 transform) const -> void {
+    setMat4("transform"sv, transform);
   }
 
 }  // namespace brabbit
