@@ -2,11 +2,11 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "msvc--opengl_demo",
+      "name": "cppvsdbg",
       "type": "cppvsdbg",
       "request": "launch",
-      "cwd": "${fileDirname}",
-      "program": "${workspaceFolder}/build/opengl_demo.exe",
+      "cwd": "${workspaceFolder}/build",
+      "program": "${command:cmake.launchTargetPath}",
       "args": [],
       "environment": [],
       "stopAtEntry": false,

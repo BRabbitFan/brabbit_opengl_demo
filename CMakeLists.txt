@@ -2,8 +2,17 @@ cmake_minimum_required(VERSION 3.20)
 
 project(brabbit_opengl_demo LANGUAGES C CXX)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# target : resource
+
+message("-------------------- configuring resource --------------------")
+
+add_custom_target(resource
+  DEPENDS ${CMAKE_SOURCE_DIR}/resource
+  COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/resource ${CMAKE_BINARY_DIR}/resource
+)
 
 # target : opengl
 
@@ -11,7 +20,7 @@ message("-------------------- configuring opengl --------------------")
 
 find_package(OpenGL REQUIRED)
 
-# # target : glad
+# target : glad
 
 message("-------------------- configuring glad --------------------")
 
@@ -53,6 +62,10 @@ file(GLOB_RECURSE OPENGL_DEMO_SOURCES
 
 add_executable(opengl_demo
   ${OPENGL_DEMO_SOURCES}
+)
+
+add_dependencies(opengl_demo
+  resource
 )
 
 target_link_libraries(opengl_demo PRIVATE

@@ -1,0 +1,10 @@
+// require OpenGL version 4.6.0
+#version 450 core
+
+// get input into vec3(Type) aPos(name) in location 0
+layout (location = 0) in vec3 aPos;
+
+void main() {
+  // set output into gl_Position(pre defined variant)
+  gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);
+}

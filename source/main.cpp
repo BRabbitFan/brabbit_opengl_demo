@@ -1,35 +1,43 @@
+#include <filesystem>
+#include <fstream>
 #include <iostream>
+#include <map>
 
 #include <glad/glad.h>
-
 #include <GLFW/glfw3.h>
-
 #include <GL/gl.h>
+
+using namespace std::string_literals;
+using namespace std::string_view_literals;
 
 namespace brabbit {
 
-  constexpr auto WIDNOW_DEFAULT_WIDTH{ 800 };
-  constexpr auto WIDNOW_DEFAULT_HEIGHT{ 600 };
-  constexpr auto WIDNOW_DEFAULT_TITLE{ "BRabbit's OpenGL Demo" };
+  auto LoadShader(std::string_view name) -> const GLchar* {
+    static auto Cache = std::map<std::string, std::string>{};
+    if (auto iter = Cache.find(name.data()); iter != Cache.end()) {
+      return iter->second.c_str();
+    }
 
-  constexpr auto VERTEX_SHADER_SOURCE{
-    // require OpenGL version 4.6.0
-    "#version 460 core\n"
-    // get input into vec3(Type) aPos(name) in location 0
-    "layout (location = 0) in vec3 aPos;\n"
-    "void main() {\n"
-    // set output into gl_Position(pre defined variant)
-    "  gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
-    "}"
-  };
+    auto path = std::filesystem::current_path() / "resource"sv / "shader"sv / name;
+    if (!std::filesystem::exists(path)) {
+      std::cout << "Shader file not found: " << path << std::endl;
+      return {};
+    }
 
-  constexpr auto FRAGMENT_SHADER_SOURCE{
-    "#version 460 core\n"
-    "out vec4 FragColor;\n"
-    "void main() {\n"
-    "  FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"  // an orange color
-    "}"
-  };
+    auto file = std::ifstream{ path };
+    if (!file) {
+      std::cout << "Open shader file failed: " << path << std::endl;
+      return {};
+    }
+
+    auto source = std::string{ std::istreambuf_iterator<char>{ file },
+                               std::istreambuf_iterator<char>{} };
+    if (source.empty()) {
+      return {};
+    }
+
+    return Cache.emplace(name, std::move(source)).first->second.c_str();
+  }
 
 }  // namespace brabbit
 
@@ -49,10 +57,14 @@ auto main(int argc, char** argv) -> int {
 
 
 
+  constexpr auto WIDNOW_DEFAULT_WIDTH = 800;
+  constexpr auto WIDNOW_DEFAULT_HEIGHT = 600;
+  constexpr auto WIDNOW_DEFAULT_TITLE = "BRabbit's OpenGL Demo";
+
   // Create a window.
-  auto* const window = glfwCreateWindow(brabbit::WIDNOW_DEFAULT_WIDTH,
-                                        brabbit::WIDNOW_DEFAULT_HEIGHT,
-                                        brabbit::WIDNOW_DEFAULT_TITLE,
+  auto* const window = glfwCreateWindow(WIDNOW_DEFAULT_WIDTH,
+                                        WIDNOW_DEFAULT_HEIGHT,
+                                        WIDNOW_DEFAULT_TITLE,
                                         nullptr,
                                         nullptr);
   if (!window) {
@@ -73,7 +85,7 @@ auto main(int argc, char** argv) -> int {
 
   // Init the OpenGL view area, at this call it will also init the window's size.
   // Then we set a callback. Reset the OpenGL view area as window's size when window's size changed.
-  glViewport(0, 0, brabbit::WIDNOW_DEFAULT_WIDTH, brabbit::WIDNOW_DEFAULT_HEIGHT);
+  glViewport(0, 0, WIDNOW_DEFAULT_WIDTH, WIDNOW_DEFAULT_HEIGHT);
   glfwSetFramebufferSizeCallback(window, [](GLFWwindow* window, int width, int height) {
     glViewport(0, 0, width, height);
   });
@@ -91,8 +103,8 @@ auto main(int argc, char** argv) -> int {
     }
 
     glfwSetWindowPos(window,
-                     (monitor_video_mode->width - brabbit::WIDNOW_DEFAULT_WIDTH) / 2,
-                     (monitor_video_mode->height - brabbit::WIDNOW_DEFAULT_HEIGHT) / 2);
+                     (monitor_video_mode->width - WIDNOW_DEFAULT_WIDTH) / 2,
+                     (monitor_video_mode->height - WIDNOW_DEFAULT_HEIGHT) / 2);
   } while (false);
 
   // glfwSetWindowOpacity(window, .5f);
@@ -101,9 +113,10 @@ auto main(int argc, char** argv) -> int {
 
   // Create a vertex shader object.
   auto vertex_shader = glCreateShader(GL_VERTEX_SHADER);
+  const auto* vertex_shader_source = brabbit::LoadShader("cube.vs");
   // Set shader's source and compile it.
   // param 2: source string count
-  glShaderSource(vertex_shader, 1, &brabbit::VERTEX_SHADER_SOURCE, NULL);
+  glShaderSource(vertex_shader, 1, &vertex_shader_source, NULL);
   glCompileShader(vertex_shader);
 
   // check if compile successed.
@@ -119,7 +132,8 @@ auto main(int argc, char** argv) -> int {
 
   // Create a fragment shader object, just like vertex shader object.
   auto fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-  glShaderSource(fragment_shader, 1, &brabbit::FRAGMENT_SHADER_SOURCE, NULL);
+  const auto* fragment_shader_source = brabbit::LoadShader("cube.fs");
+  glShaderSource(fragment_shader, 1, &fragment_shader_source, NULL);
   glCompileShader(fragment_shader);
 
   glGetShaderiv(fragment_shader, GL_COMPILE_STATUS, &successed);
