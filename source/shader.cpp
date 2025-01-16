@@ -31,18 +31,18 @@ namespace brabbit {
 
   }  // namespace
 
-  Shader::Shader(std::string_view vertex, std::string_view fragment) {
+  Shader::Shader(std::string_view vertex_name, std::string_view fragment_name) {
     id_ = glCreateProgram();
 
     auto vertex_shader = glCreateShader(GL_VERTEX_SHADER);
-    auto vertex_shader_source = LoadShaderSource(vertex);
+    auto vertex_shader_source = LoadShaderSource(vertex_name);
     auto vertex_shader_source_cstr = vertex_shader_source.c_str();
     glShaderSource(vertex_shader, 1, &vertex_shader_source_cstr, NULL);
     glCompileShader(vertex_shader);
     glAttachShader(id_, vertex_shader);
 
     auto fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-    auto fragment_shader_source = LoadShaderSource(fragment);
+    auto fragment_shader_source = LoadShaderSource(fragment_name);
     auto fragment_shader_source_cstr = fragment_shader_source.c_str();
     glShaderSource(fragment_shader, 1, &fragment_shader_source_cstr, NULL);
     glCompileShader(fragment_shader);

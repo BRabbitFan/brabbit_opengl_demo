@@ -1,15 +1,18 @@
+#include <algorithm>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <map>
 
-#include "glm/trigonometric.hpp"
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/trigonometric.hpp>
 
+#include <model.hpp>
 #include <shader.hpp>
 
 using namespace std::string_literals;
@@ -86,10 +89,12 @@ auto main(int argc, char** argv) -> int {
 
   // Init the OpenGL view area, at this call it will also init the window's size.
   // Then we set a callback. Reset the OpenGL view area as window's size when window's size changed.
-  glViewport(0, 0, WIDNOW_WIDTH, WIDNOW_HEIGHT);
-  glfwSetFramebufferSizeCallback(window, [](GLFWwindow* window, int width, int height) {
-    glViewport(0, 0, width, height);
-  });
+  constexpr auto update_viewport = [](GLFWwindow* window, int width, int height) {
+    const auto length = std::min(width, height);
+    glViewport((width - length) / 2, (height - length) / 2, length, length);
+  };
+  update_viewport(window, WIDNOW_WIDTH, WIDNOW_HEIGHT);
+  glfwSetFramebufferSizeCallback(window, update_viewport);
 
   // Init the window's position at center of primary monitor.
   do {
@@ -116,6 +121,8 @@ auto main(int argc, char** argv) -> int {
   // Create a shader program.
   auto shader = brabbit::CubeShader{};
 
+  auto model = brabbit::Model{ "cube.stl"sv };
+
 
 
   // Create and bind a VAO(Vertex Array Object)
@@ -129,13 +136,13 @@ auto main(int argc, char** argv) -> int {
 
 
   // real vertices data
-  float vertices[] = {
-    // { x, y, z }
-    -0.75f, -0.5f, 0.0f,
-     0.50f, -0.5f, 0.0f,
-    -0.50f,  0.5f, 0.0f,
-     0.75f,  0.5f, 0.0f,
-  };
+  // float vertices[] = {
+  //   // { x, y, z }
+  //   -0.75f, -0.5f, 0.0f,
+  //    0.50f, -0.5f, 0.0f,
+  //   -0.50f,  0.5f, 0.0f,
+  //    0.75f,  0.5f, 0.0f,
+  // };
 
   // Generate a VBO(Vertex Buffer Object) buffer.
   // This buffer is use to send Vertex data to GPU from CPU.
@@ -151,21 +158,23 @@ auto main(int argc, char** argv) -> int {
   // GL_STATIC_DRAW: The data will never or rarely change.
   // GL_DYNAMIC_DRAW：The data will be changed a lot.
   // GL_STREAM_DRAW：The data changes every time it is plotted.
-  glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+  // glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, model.verticesSize(), model.verticesData(), GL_STATIC_DRAW);
 
 
 
   // index list/element list
-  unsigned int indices[] = {
-    0, 1, 2,  // first triangle
-    1, 2, 3,  // second triangle
-  };
+  // unsigned int indices[] = {
+  //   0, 1, 2,  // first triangle
+  //   1, 2, 3,  // second triangle
+  // };
 
   // EBO/IBO (Element Buffer Object/Index Buffer Object)
   unsigned int EBO;
   glGenBuffers(1, &EBO);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+  // glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, model.indicesSize(), model.indicesData(), GL_STATIC_DRAW);
 
 
 
@@ -205,15 +214,20 @@ auto main(int argc, char** argv) -> int {
     shader.use();
 
     auto time = glfwGetTime();
-    GLfloat r = (std::sin(time) / 2.0f) + 0.3f;
-    GLfloat g = (std::cos(time) / 2.0f) + 0.4f;
-    GLfloat b = (std::sin(time) / 2.0f) + 0.5f;
-    GLfloat a = static_cast<int>(time) % 2 == 0 ? 1.0f : 0.0f;
-    shader.setGlobalColor({ r, g, b, a });
+
+    // GLfloat r = (std::sin(time) / 2.0f) + 0.3f;
+    // GLfloat g = (std::cos(time) / 2.0f) + 0.4f;
+    // GLfloat b = (std::sin(time) / 2.0f) + 0.5f;
+    // GLfloat a = static_cast<int>(time) % 2 == 0 ? 1.0f : 0.0f;
+    // shader.setGlobalColor({ r, g, b, a });
 
     auto transform = glm::mat4{ 1.0f };
-    auto radians = glm::radians(static_cast<float>(static_cast<int>(time * 100) % 360));
-    transform = glm::rotate(transform, radians, glm::vec3{ 0.0f, 1.0f, 0.0f });
+    auto radians_x = glm::radians(static_cast<float>(static_cast<int>(time * 100) % 360));
+    auto radians_y = glm::radians(static_cast<float>(static_cast<int>(time * 50) % 360));
+    auto radians_z = glm::radians(static_cast<float>(static_cast<int>(time * 25) % 360));
+    transform = glm::rotate(transform, radians_x, glm::vec3{ 1.0f, 1.0f, 1.0f });
+    transform = glm::rotate(transform, radians_y, glm::vec3{ 0.0f, 1.0f, 0.0f });
+    transform = glm::rotate(transform, radians_z, glm::vec3{ 0.0f, 0.0f, 1.0f });
     shader.setTransform(transform);
 
     // Load attributes in VAO
@@ -231,7 +245,8 @@ auto main(int argc, char** argv) -> int {
     // param 2: [int] index count of element array
     // param 3: [enum] type of index array
     // param 4: [void*] offset of index array
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, reinterpret_cast<void*>(0));
+    // glDrawElements(GL_TRIANGLES, sizeof(indices), GL_UNSIGNED_INT, reinterpret_cast<void*>(0));
+    glDrawElements(GL_TRIANGLES, model.indicesSize(), GL_UNSIGNED_INT, reinterpret_cast<void*>(0));
 
     glfwSwapBuffers(window);  // swap front and back buffers
     glfwPollEvents();  // poll for and process events

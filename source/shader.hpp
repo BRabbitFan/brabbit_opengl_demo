@@ -4,6 +4,8 @@
 
 #include <glad/glad.h>
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 namespace brabbit {
 
@@ -22,7 +24,7 @@ namespace brabbit {
     auto use() -> void;
 
    protected:
-    explicit Shader(std::string_view vertex, std::string_view fragment);
+    explicit Shader(std::string_view vertex_name, std::string_view fragment_name);
 
    protected:
     auto setFloat(std::string_view name, GLfloat value) const -> void;
