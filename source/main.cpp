@@ -6,6 +6,8 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+#include <shader.hpp>
+
 using namespace std::string_literals;
 using namespace std::string_view_literals;
 
@@ -28,7 +30,7 @@ auto LoadShader(std::string_view name) -> const GLchar* {
   }
 
   auto source = std::string{ std::istreambuf_iterator<char>{ file },
-                              std::istreambuf_iterator<char>{} };
+                             std::istreambuf_iterator<char>{} };
   if (source.empty()) {
     return {};
   }
@@ -106,66 +108,9 @@ auto main(int argc, char** argv) -> int {
 
 
 
-  // Create a vertex shader object.
-  auto vertex_shader = glCreateShader(GL_VERTEX_SHADER);
 
-  // Set shader's source and compile it.
-  // param 2: source string count
-  const auto* vertex_shader_source = LoadShader("cube.vs"sv);
-  glShaderSource(vertex_shader, 1, &vertex_shader_source, NULL);
-
-  glCompileShader(vertex_shader);
-  // check if compile successed.
-  int successed;
-  glGetShaderiv(vertex_shader, GL_COMPILE_STATUS, &successed);
-  if (!successed) {
-    char message[512];
-    glGetShaderInfoLog(vertex_shader, sizeof(message), NULL, message);
-    std::cout << "[error] create vertex shader object error :\n  "sv << message << std::endl;
-  }
-
-
-
-  // Create a fragment shader object, just like vertex shader object.
-  auto fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-
-  const auto* fragment_shader_source = LoadShader("cube.fs"sv);
-  glShaderSource(fragment_shader, 1, &fragment_shader_source, NULL);
-
-  glCompileShader(fragment_shader);
-  glGetShaderiv(fragment_shader, GL_COMPILE_STATUS, &successed);
-  if (!successed) {
-    char message[512];
-    glGetShaderInfoLog(fragment_shader, sizeof(message), NULL, message);
-    std::cout << "[error] create fragment shader object error :\n  "sv << message << std::endl;
-  }
-
-
-
-  // Create a shader program object, and link the vertex shader and the fragment shader object into.
-  auto shader_program = glCreateProgram();
-
-  glAttachShader(shader_program, vertex_shader);
-  glAttachShader(shader_program, fragment_shader);
-
-  glLinkProgram(shader_program);
-  glGetProgramiv(shader_program, GL_LINK_STATUS, &successed);
-  if (!successed) {
-    char message[512];
-    glGetProgramInfoLog(shader_program, sizeof(message), NULL, message);
-    std::cout << "[error] create shader program object error :\n  "sv << message << std::endl;
-  }
-
-  // shader_program allready got the shaders, we don't need then anymore.
-  glDeleteShader(vertex_shader);
-  glDeleteShader(fragment_shader);
-
-  // Get the uniform variable location in shader program.
-  const auto global_color_location = glGetUniformLocation(shader_program, "global_color");
-
-  // The shader program object created allready, we can use it in render loop.
-  // Actrualy action here: our shaders will send to GPU.
-  // glUseProgram(shader_program);
+  // Create a shader program.
+  auto shader = brabbit::CubeShader{};
 
 
 
@@ -251,16 +196,14 @@ auto main(int argc, char** argv) -> int {
   while (!glfwWindowShouldClose(window)) {
     glClear(GL_COLOR_BUFFER_BIT);  // clear buffer use the color we set before
 
-    // Use the shader program
-    glUseProgram(shader_program);
-
-    // Update uniform variable, must be called after 'glUseProgram'
+    // Use the shader program and update uniform variable
+    shader.use();
     auto time = glfwGetTime();
-    auto r = (std::sin(time) / 2.0f) + 0.3f;
-    auto g = (std::cos(time) / 2.0f) + 0.4f;
-    auto b = (std::sin(time) / 2.0f) + 0.5f;
-    auto is_double_second = static_cast<int>(time) % 2 == 0;
-    glUniform4f(global_color_location, r, g, b, is_double_second ? 1.0f : 0.0f);
+    GLfloat r = (std::sin(time) / 2.0f) + 0.3f;
+    GLfloat g = (std::cos(time) / 2.0f) + 0.4f;
+    GLfloat b = (std::sin(time) / 2.0f) + 0.5f;
+    GLfloat a = static_cast<int>(time) % 2 == 0 ? 1.0f : 0.0f;
+    shader.setGlobalColor({ r, g, b, a });
 
     // Load attributes in VAO
     glBindVertexArray(VAO);

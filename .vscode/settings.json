@@ -4,7 +4,12 @@
   "cmake.generator": "Ninja",
   "cmake.configureSettings": {
     "CMAKE_EXE_LINKER_FLAGS": "/NODEFAULTLIB:MSVCRT",
+    "CMAKE_EXPORT_COMPILE_COMMANDS": "TRUE",
   },
+
+  "clangd.arguments": [
+    "--compile-commands-dir=${workspaceFolder}/build",
+  ],
 
   "clangd.fallbackFlags": [
     // "-I${workspaceFolder}/library/glad/include"
