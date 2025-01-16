@@ -5,41 +5,36 @@
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include <GL/gl.h>
 
 using namespace std::string_literals;
 using namespace std::string_view_literals;
 
-namespace brabbit {
-
-  auto LoadShader(std::string_view name) -> const GLchar* {
-    static auto Cache = std::map<std::string, std::string>{};
-    if (auto iter = Cache.find(name.data()); iter != Cache.end()) {
-      return iter->second.c_str();
-    }
-
-    auto path = std::filesystem::current_path() / "resource"sv / "shader"sv / name;
-    if (!std::filesystem::exists(path)) {
-      std::cout << "Shader file not found: " << path << std::endl;
-      return {};
-    }
-
-    auto file = std::ifstream{ path };
-    if (!file) {
-      std::cout << "Open shader file failed: " << path << std::endl;
-      return {};
-    }
-
-    auto source = std::string{ std::istreambuf_iterator<char>{ file },
-                               std::istreambuf_iterator<char>{} };
-    if (source.empty()) {
-      return {};
-    }
-
-    return Cache.emplace(name, std::move(source)).first->second.c_str();
+auto LoadShader(std::string_view name) -> const GLchar* {
+  static auto Cache = std::map<std::string, std::string>{};
+  if (auto iter = Cache.find(name.data()); iter != Cache.end()) {
+    return iter->second.c_str();
   }
 
-}  // namespace brabbit
+  auto path = std::filesystem::current_path() / "resource"sv / "shader"sv / name;
+  if (!std::filesystem::exists(path)) {
+    std::cout << "Shader file not found: "sv << path << std::endl;
+    return {};
+  }
+
+  auto file = std::ifstream{ path };
+  if (!file) {
+    std::cout << "Open shader file failed: "sv << path << std::endl;
+    return {};
+  }
+
+  auto source = std::string{ std::istreambuf_iterator<char>{ file },
+                              std::istreambuf_iterator<char>{} };
+  if (source.empty()) {
+    return {};
+  }
+
+  return Cache.emplace(name, std::move(source)).first->second.c_str();
+}
 
 auto main(int argc, char** argv) -> int {
   // Init the context.
@@ -48,7 +43,7 @@ auto main(int argc, char** argv) -> int {
   }
 
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
   // glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, GLFW_TRUE);
 #ifdef __APPLE__
@@ -57,14 +52,14 @@ auto main(int argc, char** argv) -> int {
 
 
 
-  constexpr auto WIDNOW_DEFAULT_WIDTH = 800;
-  constexpr auto WIDNOW_DEFAULT_HEIGHT = 600;
-  constexpr auto WIDNOW_DEFAULT_TITLE = "BRabbit's OpenGL Demo";
 
   // Create a window.
-  auto* const window = glfwCreateWindow(WIDNOW_DEFAULT_WIDTH,
-                                        WIDNOW_DEFAULT_HEIGHT,
-                                        WIDNOW_DEFAULT_TITLE,
+  constexpr auto WIDNOW_WIDTH = 800;
+  constexpr auto WIDNOW_HEIGHT = 600;
+  constexpr auto WIDNOW_TITLE = "BRabbit's OpenGL Demo"sv;
+  auto* const window = glfwCreateWindow(WIDNOW_WIDTH,
+                                        WIDNOW_HEIGHT,
+                                        WIDNOW_TITLE.data(),
                                         nullptr,
                                         nullptr);
   if (!window) {
@@ -80,12 +75,12 @@ auto main(int argc, char** argv) -> int {
   }
 
   if (const auto* version = glGetString(GL_VERSION); version) {
-    std::cout << "OpenGL version: " << version << std::endl;
+    std::cout << "OpenGL version: "sv << version << std::endl;
   }
 
   // Init the OpenGL view area, at this call it will also init the window's size.
   // Then we set a callback. Reset the OpenGL view area as window's size when window's size changed.
-  glViewport(0, 0, WIDNOW_DEFAULT_WIDTH, WIDNOW_DEFAULT_HEIGHT);
+  glViewport(0, 0, WIDNOW_WIDTH, WIDNOW_HEIGHT);
   glfwSetFramebufferSizeCallback(window, [](GLFWwindow* window, int width, int height) {
     glViewport(0, 0, width, height);
   });
@@ -97,14 +92,14 @@ auto main(int argc, char** argv) -> int {
       break;
     }
 
-    const auto* const monitor_video_mode = glfwGetVideoMode(monitor);
-    if (!monitor_video_mode) {
+    const auto* const mode = glfwGetVideoMode(monitor);
+    if (!mode) {
       break;
     }
 
-    glfwSetWindowPos(window,
-                     (monitor_video_mode->width - WIDNOW_DEFAULT_WIDTH) / 2,
-                     (monitor_video_mode->height - WIDNOW_DEFAULT_HEIGHT) / 2);
+    const auto center_x = (mode->width - WIDNOW_WIDTH) / 2;
+    const auto center_y = (mode->height - WIDNOW_HEIGHT) / 2;
+    glfwSetWindowPos(window, center_x, center_y);
   } while (false);
 
   // glfwSetWindowOpacity(window, .5f);
@@ -113,62 +108,73 @@ auto main(int argc, char** argv) -> int {
 
   // Create a vertex shader object.
   auto vertex_shader = glCreateShader(GL_VERTEX_SHADER);
-  const auto* vertex_shader_source = brabbit::LoadShader("cube.vs");
+
   // Set shader's source and compile it.
   // param 2: source string count
+  const auto* vertex_shader_source = LoadShader("cube.vs"sv);
   glShaderSource(vertex_shader, 1, &vertex_shader_source, NULL);
-  glCompileShader(vertex_shader);
 
+  glCompileShader(vertex_shader);
   // check if compile successed.
   int successed;
   glGetShaderiv(vertex_shader, GL_COMPILE_STATUS, &successed);
   if (!successed) {
     char message[512];
     glGetShaderInfoLog(vertex_shader, sizeof(message), NULL, message);
-    std::cout << "[error] create vertex shader object error :\n  " << message << std::endl;
+    std::cout << "[error] create vertex shader object error :\n  "sv << message << std::endl;
   }
 
 
 
   // Create a fragment shader object, just like vertex shader object.
   auto fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-  const auto* fragment_shader_source = brabbit::LoadShader("cube.fs");
-  glShaderSource(fragment_shader, 1, &fragment_shader_source, NULL);
-  glCompileShader(fragment_shader);
 
+  const auto* fragment_shader_source = LoadShader("cube.fs"sv);
+  glShaderSource(fragment_shader, 1, &fragment_shader_source, NULL);
+
+  glCompileShader(fragment_shader);
   glGetShaderiv(fragment_shader, GL_COMPILE_STATUS, &successed);
   if (!successed) {
     char message[512];
     glGetShaderInfoLog(fragment_shader, sizeof(message), NULL, message);
-    std::cout << "[error] create fragment shader object error :\n  " << message << std::endl;
+    std::cout << "[error] create fragment shader object error :\n  "sv << message << std::endl;
   }
 
 
 
   // Create a shader program object, and link the vertex shader and the fragment shader object into.
-  unsigned int shader_program;
-  shader_program = glCreateProgram();
+  auto shader_program = glCreateProgram();
+
   glAttachShader(shader_program, vertex_shader);
   glAttachShader(shader_program, fragment_shader);
-  glLinkProgram(shader_program);
 
+  glLinkProgram(shader_program);
   glGetProgramiv(shader_program, GL_LINK_STATUS, &successed);
   if (!successed) {
     char message[512];
     glGetProgramInfoLog(shader_program, sizeof(message), NULL, message);
-    std::cout << "[error] create shader program object error :\n  " << message << std::endl;
+    std::cout << "[error] create shader program object error :\n  "sv << message << std::endl;
   }
 
   // shader_program allready got the shaders, we don't need then anymore.
   glDeleteShader(vertex_shader);
   glDeleteShader(fragment_shader);
 
+  // Get the uniform variable location in shader program.
+  const auto global_color_location = glGetUniformLocation(shader_program, "global_color");
+
+  // The shader program object created allready, we can use it in render loop.
+  // Actrualy action here: our shaders will send to GPU.
+  // glUseProgram(shader_program);
+
 
 
   // Create and bind a VAO(Vertex Array Object)
   unsigned int VAO;
   glGenVertexArrays(1, &VAO);
+
   // Load attributes in VAO
+  // From now on, any function call in this target will action on our VAO buffer.
   glBindVertexArray(VAO);
 
 
@@ -200,13 +206,13 @@ auto main(int argc, char** argv) -> int {
 
 
 
-  // index list
+  // index list/element list
   unsigned int indices[] = {
     0, 1, 2,  // first triangle
     1, 2, 3,  // second triangle
   };
 
-  // EBO (Element Buffer Object)
+  // EBO/IBO (Element Buffer Object/Index Buffer Object)
   unsigned int EBO;
   glGenBuffers(1, &EBO);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
@@ -221,8 +227,8 @@ auto main(int argc, char** argv) -> int {
   // param 3: [enum] type of data, GL_FLOAT means float (of course..)
   // param 4: [bool] need to normalize or not, GL_TRUE or GL_FALSE
   // param 5: [int] stride, data's stride between each group
-  // param 6: [(void*)int] offset, offset of data's begin position
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+  // param 6: [void*] offset, offset of data's begin position
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), reinterpret_cast<void*>(0));
   // Make data attribute in location 0 enabled
   // Call the 'glDisableVertexAttribArray' in some where to disabled it.
   glEnableVertexAttribArray(0);
@@ -236,22 +242,42 @@ auto main(int argc, char** argv) -> int {
     }
   });
 
-  while (!glfwWindowShouldClose(window)) {
-    glClearColor(1.f, 1.f, 1.f, 1.f);
-    glClear(GL_COLOR_BUFFER_BIT);  // render here
 
-    // The shader program object created allready, let's use it!
-    // Actrualy action here: our shaders will send to GPU.
+
+  // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);  // wireframe mode
+  glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+  glClearColor(1.f, 1.f, 1.f, 1.f);  // set clear color
+  while (!glfwWindowShouldClose(window)) {
+    glClear(GL_COLOR_BUFFER_BIT);  // clear buffer use the color we set before
+
+    // Use the shader program
     glUseProgram(shader_program);
+
+    // Update uniform variable, must be called after 'glUseProgram'
+    auto time = glfwGetTime();
+    auto r = (std::sin(time) / 2.0f) + 0.3f;
+    auto g = (std::cos(time) / 2.0f) + 0.4f;
+    auto b = (std::sin(time) / 2.0f) + 0.5f;
+    auto is_double_second = static_cast<int>(time) % 2 == 0;
+    glUniform4f(global_color_location, r, g, b, is_double_second ? 1.0f : 0.0f);
 
     // Load attributes in VAO
     glBindVertexArray(VAO);
 
-    // Draw the triangle
+    // Use VBO to draw the triangle
     // param 1: [enum] type to draw
     // param 2: [int] first index of vertex array
     // param 3: [int] vertex count
-    glDrawArrays(GL_TRIANGLES, 0, 3);
+    // glDrawArrays(GL_TRIANGLES, 0, 3);
+    // glDrawArrays(GL_TRIANGLES, 1, 3);
+
+    // Use EBO and VB0 to draw the triangle
+    // param 1: [enum] type to draw
+    // param 2: [int] index count of element array
+    // param 3: [enum] type of index array
+    // param 4: [void*] offset of index array
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, reinterpret_cast<void*>(0));
 
     glfwSwapBuffers(window);  // swap front and back buffers
     glfwPollEvents();  // poll for and process events
