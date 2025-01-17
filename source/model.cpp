@@ -166,4 +166,20 @@ namespace brabbit {
     return indices_.size() * sizeof(glm::uvec3);
   }
 
+  auto Model::model() const -> const glm::mat4& {
+    return model_;
+  }
+
+  auto Model::getModel() const -> glm::mat4 {
+    return model_;
+  }
+
+  auto Model::setModel(const glm::mat4& model) -> void {
+    model_ = model;
+  }
+
+  auto Model::setModel(glm::mat4&& model) -> void {
+    model_ = std::move(model);
+  }
+
 }  // namespace brabbit

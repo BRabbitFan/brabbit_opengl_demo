@@ -5,7 +5,9 @@ layout (location = 0) in vec3 vertex_position;
 
 out vec4 vertex_color;
 
-uniform mat4 transform;
+uniform mat4 model;
+uniform mat4 view;
+uniform mat4 projection;
 
 void main() {
   bool x_max = abs(vertex_position.x) == 0.5;
@@ -23,5 +25,5 @@ void main() {
   }
 
   // set output into gl_Position(pre defined variant)
-  gl_Position = transform * vec4(vertex_position, 1.0);
+  gl_Position = projection * view * model * vec4(vertex_position, 1.0);
 }

@@ -1,6 +1,8 @@
-#include <algorithm>
+#include <chrono>
+#include <thread>
 #include <iostream>
 
+#include "glm/detail/qualifier.hpp"
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
@@ -30,13 +32,11 @@ auto main(int argc, char** argv) -> int {
 
 
 
-
   // Create a window.
-  constexpr auto WIDNOW_WIDTH = 800;
-  constexpr auto WIDNOW_HEIGHT = 600;
+  static auto screen = brabbit::Screen{ 800, 600 };
   constexpr auto WIDNOW_TITLE = "BRabbit's OpenGL Demo"sv;
-  auto* const window = glfwCreateWindow(WIDNOW_WIDTH,
-                                        WIDNOW_HEIGHT,
+  auto* const window = glfwCreateWindow(screen.width(),
+                                        screen.height(),
                                         WIDNOW_TITLE.data(),
                                         nullptr,
                                         nullptr);
@@ -59,10 +59,10 @@ auto main(int argc, char** argv) -> int {
   // Init the OpenGL view area, at this call it will also init the window's size.
   // Then we set a callback. Reset the OpenGL view area as window's size when window's size changed.
   constexpr auto update_viewport = [](GLFWwindow* window, int width, int height) {
-    const auto length = std::min(width, height);
-    glViewport((width - length) / 2, (height - length) / 2, length, length);
+    glViewport(0, 0, width, height);
+    screen.setSize(width, height);
   };
-  update_viewport(window, WIDNOW_WIDTH, WIDNOW_HEIGHT);
+  update_viewport(window, screen.width(), screen.height());
   glfwSetFramebufferSizeCallback(window, update_viewport);
 
   // Init the window's position at center of primary monitor.
@@ -77,8 +77,8 @@ auto main(int argc, char** argv) -> int {
       break;
     }
 
-    const auto center_x = (mode->width - WIDNOW_WIDTH) / 2;
-    const auto center_y = (mode->height - WIDNOW_HEIGHT) / 2;
+    const auto center_x = (mode->width - screen.width()) / 2;
+    const auto center_y = (mode->height - screen.height()) / 2;
     glfwSetWindowPos(window, center_x, center_y);
   } while (false);
 
@@ -90,7 +90,12 @@ auto main(int argc, char** argv) -> int {
   // Create a shader program.
   auto shader = brabbit::CubeShader{};
 
+
+  static auto camera = brabbit::Camera{};
+  camera.view_ = glm::translate(camera.view_, { 0.0f, 0.0f, -3.0f });
+
   auto model = brabbit::Model{ "cube.stl"sv };
+  model.setModel(glm::rotate(model.model(), glm::radians(-55.0f), { 1.0f, 0.0f, 0.0f }));
 
 
 
@@ -150,6 +155,22 @@ auto main(int argc, char** argv) -> int {
       glfwSetWindowShouldClose(window, true);
       return;
     }
+
+    if (key == GLFW_KEY_W && action == GLFW_PRESS) {
+      camera.view_ = glm::translate(camera.view_, { 0.0f, 0.0f, 0.1f });
+    }
+
+    if (key == GLFW_KEY_S && action == GLFW_PRESS) {
+      camera.view_ = glm::translate(camera.view_, { 0.0f, 0.0f, -0.1f });
+    }
+
+    if (key == GLFW_KEY_A && action == GLFW_PRESS) {
+      camera.view_ = glm::translate(camera.view_, { -0.1f, 0.0f, 0.0f });
+    }
+
+    if (key == GLFW_KEY_D && action == GLFW_PRESS) {
+      camera.view_ = glm::translate(camera.view_, { 0.1f, 0.0f, 0.0f });
+    }
   });
 
 
@@ -160,6 +181,8 @@ auto main(int argc, char** argv) -> int {
   glEnable(GL_DEPTH_TEST);  // enable depth test (use to hide the object behind another object)
   glClearColor(1.f, 1.f, 1.f, 1.f);  // set clear color
   while (!glfwWindowShouldClose(window)) {
+    auto start = std::chrono::steady_clock::now();
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Use the shader program and update uniform variable
@@ -168,21 +191,18 @@ auto main(int argc, char** argv) -> int {
 
     auto time = glfwGetTime();
 
-    // GLfloat r = std::sin(time) / 2.0f + 0.3f;
-    // GLfloat g = std::cos(time) / 2.0f + 0.4f;
-    // GLfloat b = std::sin(time) / 2.0f + 0.5f;
-    // GLfloat a = static_cast<int>(time) % 2 == 0 ? 1.0f : 0.0f;
-    // shader.setGlobalColor({ r, g, b, a });
+    GLfloat r = std::sin(time) / 2.0f + 0.3f;
+    GLfloat g = std::cos(time) / 2.0f + 0.4f;
+    GLfloat b = std::sin(time) / 2.0f + 0.5f;
+    GLfloat a = static_cast<int>(time) % 2 == 0 ? 1.0f : 0.0f;
+    shader.setGlobalColor({ r, g, b, a });
 
-    auto transform = glm::mat4{ 1.0f };
-    auto radians_x = glm::radians(static_cast<float>(static_cast<int>(time * 100) % 360));
-    auto radians_y = glm::radians(static_cast<float>(static_cast<int>(time * 50) % 360));
-    auto radians_z = glm::radians(static_cast<float>(static_cast<int>(time * 25) % 360));
-    transform = glm::rotate(transform, radians_x, { 1.0f, 0.0f, 0.0f });
-    transform = glm::rotate(transform, radians_y, { 0.0f, 1.0f, 0.0f });
-    transform = glm::rotate(transform, radians_z, { 0.0f, 0.0f, 1.0f });
-    transform = glm::translate(transform, { -0.25f, 0.25f, 0.0f });
-    shader.setTransform(transform);
+    auto radians = static_cast<float>(time) * glm::radians(50.0f);
+    model.setModel(glm::rotate(glm::mat4{ 1.0f }, radians, { 0.5f, 1.0f, 0.0f }));
+
+    shader.setModel(model.model());
+    shader.setView(camera.view_);
+    shader.setProjection(screen.projection());
 
     // Load attributes in VAO
     glBindVertexArray(VAO);
@@ -196,6 +216,11 @@ auto main(int argc, char** argv) -> int {
 
     glfwSwapBuffers(window);  // swap front and back buffers
     glfwPollEvents();  // poll for and process events
+
+    auto end = std::chrono::steady_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    using namespace std::chrono_literals;
+    std::this_thread::sleep_for(1000ms / 119 - duration);
   }
 
   glfwTerminate();
