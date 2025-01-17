@@ -157,19 +157,23 @@ auto main(int argc, char** argv) -> int {
     }
 
     if (key == GLFW_KEY_W && action == GLFW_PRESS) {
-      camera.view_ = glm::translate(camera.view_, { 0.0f, 0.0f, 0.1f });
+      auto front = glm::normalize(glm::vec3{ camera.view_[0][2], camera.view_[1][2], camera.view_[2][2] });
+      camera.view_ = glm::translate(camera.view_, front);
     }
 
     if (key == GLFW_KEY_S && action == GLFW_PRESS) {
-      camera.view_ = glm::translate(camera.view_, { 0.0f, 0.0f, -0.1f });
+      auto back = glm::normalize(glm::vec3{ -camera.view_[0][2], -camera.view_[1][2], -camera.view_[2][2] });
+      camera.view_ = glm::translate(camera.view_, back);
     }
 
     if (key == GLFW_KEY_A && action == GLFW_PRESS) {
-      camera.view_ = glm::translate(camera.view_, { -0.1f, 0.0f, 0.0f });
+      auto right = glm::normalize(glm::vec3{ camera.view_[0][0], camera.view_[1][0], camera.view_[2][0] });
+      camera.view_ = glm::translate(camera.view_, right);
     }
 
     if (key == GLFW_KEY_D && action == GLFW_PRESS) {
-      camera.view_ = glm::translate(camera.view_, { 0.1f, 0.0f, 0.0f });
+      auto left = glm::normalize(glm::vec3{ -camera.view_[0][0], -camera.view_[1][0], -camera.view_[2][0] });
+      camera.view_ = glm::translate(camera.view_, left);
     }
   });
 
