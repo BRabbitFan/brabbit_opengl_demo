@@ -1,5 +1,3 @@
-#include <chrono>
-#include <thread>
 #include <iostream>
 
 #include "glm/detail/qualifier.hpp"
@@ -10,8 +8,10 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include <camera.hpp>
 #include <model.hpp>
 #include <shader.hpp>
+#include <threads.h>
 
 using namespace std::string_literals;
 using namespace std::string_view_literals;
@@ -33,7 +33,7 @@ auto main(int argc, char** argv) -> int {
 
 
   // Create a window.
-  static auto screen = brabbit::Screen{ 800, 600 };
+  auto screen = brabbit::Screen{ 800, 600 };
   constexpr auto WIDNOW_TITLE = "BRabbit's OpenGL Demo"sv;
   auto* const window = glfwCreateWindow(screen.width(),
                                         screen.height(),
@@ -57,13 +57,7 @@ auto main(int argc, char** argv) -> int {
   }
 
   // Init the OpenGL view area, at this call it will also init the window's size.
-  // Then we set a callback. Reset the OpenGL view area as window's size when window's size changed.
-  constexpr auto update_viewport = [](GLFWwindow* window, int width, int height) {
-    glViewport(0, 0, width, height);
-    screen.setSize(width, height);
-  };
-  update_viewport(window, screen.width(), screen.height());
-  glfwSetFramebufferSizeCallback(window, update_viewport);
+  glViewport(0, 0, screen.width(), screen.height());
 
   // Init the window's position at center of primary monitor.
   do {
@@ -90,9 +84,7 @@ auto main(int argc, char** argv) -> int {
   // Create a shader program.
   auto shader = brabbit::CubeShader{};
 
-
-  static auto camera = brabbit::Camera{};
-  camera.view_ = glm::translate(camera.view_, { 0.0f, 0.0f, -3.0f });
+  auto camera = brabbit::Camera{};
 
   auto model = brabbit::Model{ "cube.stl"sv };
   model.setModel(glm::rotate(model.model(), glm::radians(-55.0f), { 1.0f, 0.0f, 0.0f }));
@@ -150,42 +142,96 @@ auto main(int argc, char** argv) -> int {
 
 
 
-  glfwSetKeyCallback(window, [](GLFWwindow* window, int key, int scancode, int action, int mods) {
-    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
+  const auto process_window_state = [&](GLFWwindow* window) {
+    int width, height;
+    glfwGetWindowSize(window, &width, &height);
+    if (width != screen.width() || height != screen.height()) {
+      glViewport(0, 0, width, height);
+      screen.setSize(width, height);
+    }
+  };
+
+  const auto process_input = [&](GLFWwindow* window, float delta_time) {
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
       glfwSetWindowShouldClose(window, true);
-      return;
     }
 
-    if (key == GLFW_KEY_W && action == GLFW_PRESS) {
-      auto front = glm::normalize(glm::vec3{ camera.view_[0][2], camera.view_[1][2], camera.view_[2][2] });
-      camera.view_ = glm::translate(camera.view_, front);
+    const auto speed = camera.speed() * delta_time;
+    const auto& front = camera.front();
+    const auto& up = camera.up();
+
+    auto position = camera.position();
+
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+      position += camera.front() * speed;
     }
 
-    if (key == GLFW_KEY_S && action == GLFW_PRESS) {
-      auto back = glm::normalize(glm::vec3{ -camera.view_[0][2], -camera.view_[1][2], -camera.view_[2][2] });
-      camera.view_ = glm::translate(camera.view_, back);
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+      position -= camera.front() * speed;
     }
 
-    if (key == GLFW_KEY_A && action == GLFW_PRESS) {
-      auto right = glm::normalize(glm::vec3{ camera.view_[0][0], camera.view_[1][0], camera.view_[2][0] });
-      camera.view_ = glm::translate(camera.view_, right);
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+      position -= camera.right() * speed;
     }
 
-    if (key == GLFW_KEY_D && action == GLFW_PRESS) {
-      auto left = glm::normalize(glm::vec3{ -camera.view_[0][0], -camera.view_[1][0], -camera.view_[2][0] });
-      camera.view_ = glm::translate(camera.view_, left);
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+      position += camera.right() * speed;
     }
-  });
 
+    camera.setPosition(std::move(position));
 
+    static auto last_x = -1.0;
+    static auto last_y = -1.0;
+    auto cursor_x = 0.0;
+    auto cursor_y = 0.0;
+    glfwGetCursorPos(window, &cursor_x, &cursor_y);
+
+    if (last_x < 0.0 || last_y < 0.0) {
+      last_x = cursor_x;
+      last_y = cursor_y;
+    }
+
+    auto x_offset = cursor_x - last_x;
+    auto y_offset = last_y - cursor_y;  // reversed since y-coordinates go from bottom to top
+    if (x_offset > 0.0 || y_offset > 0.0) {
+      last_x = cursor_x;
+      last_y = cursor_y;
+
+      auto sensitivity = 0.1f;
+      x_offset *= sensitivity;
+      y_offset *= sensitivity;
+
+      auto yaw = camera.yaw() + x_offset;
+      // auto pitch = camera.pitch() + y_offset;
+      auto pitch = std::max(-89.0f, std::min(89.0f, static_cast<float>(camera.pitch() + y_offset)));
+
+      auto front = glm::vec3{
+        std::cos(glm::radians(yaw)) * std::cos(glm::radians(pitch)),
+        std::sin(glm::radians(pitch)),
+        std::sin(glm::radians(yaw)) * std::cos(glm::radians(pitch)),
+      };
+
+      camera.setFront(glm::normalize(front));
+    }
+  };
 
   // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);  // wireframe mode
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
   glEnable(GL_DEPTH_TEST);  // enable depth test (use to hide the object behind another object)
   glClearColor(1.f, 1.f, 1.f, 1.f);  // set clear color
+
+  glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);  // hide cursor and lock it in window
+
+  auto delta_time = 0.0;
+  auto last_frame_time = 0.0;
   while (!glfwWindowShouldClose(window)) {
-    auto start = std::chrono::steady_clock::now();
+    auto current_frame_time = glfwGetTime();
+    delta_time = current_frame_time - last_frame_time;
+    last_frame_time = current_frame_time;
+
+    process_window_state(window);
+    process_input(window, delta_time);
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -193,19 +239,17 @@ auto main(int argc, char** argv) -> int {
 
     shader.use();
 
-    auto time = glfwGetTime();
-
-    GLfloat r = std::sin(time) / 2.0f + 0.3f;
-    GLfloat g = std::cos(time) / 2.0f + 0.4f;
-    GLfloat b = std::sin(time) / 2.0f + 0.5f;
-    GLfloat a = static_cast<int>(time) % 2 == 0 ? 1.0f : 0.0f;
+    GLfloat r = std::sin(current_frame_time) / 2.0f + 0.3f;
+    GLfloat g = std::cos(current_frame_time) / 2.0f + 0.4f;
+    GLfloat b = std::sin(current_frame_time) / 2.0f + 0.5f;
+    GLfloat a = static_cast<int>(current_frame_time) % 2 == 0 ? 1.0f : 0.0f;
     shader.setGlobalColor({ r, g, b, a });
 
-    auto radians = static_cast<float>(time) * glm::radians(50.0f);
+    auto radians = static_cast<float>(current_frame_time) * glm::radians(50.0f);
     model.setModel(glm::rotate(glm::mat4{ 1.0f }, radians, { 0.5f, 1.0f, 0.0f }));
 
     shader.setModel(model.model());
-    shader.setView(camera.view_);
+    shader.setView(camera.view());
     shader.setProjection(screen.projection());
 
     // Load attributes in VAO
@@ -220,11 +264,6 @@ auto main(int argc, char** argv) -> int {
 
     glfwSwapBuffers(window);  // swap front and back buffers
     glfwPollEvents();  // poll for and process events
-
-    auto end = std::chrono::steady_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-    using namespace std::chrono_literals;
-    std::this_thread::sleep_for(1000ms / 119 - duration);
   }
 
   glfwTerminate();

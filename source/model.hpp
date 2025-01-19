@@ -3,8 +3,6 @@
 #include <string_view>
 #include <vector>
 
-#include "glm/ext/matrix_clip_space.hpp"
-#include "glm/trigonometric.hpp"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -40,12 +38,6 @@ namespace brabbit {
     std::vector<glm::vec3> vertices_{};
     std::vector<glm::uvec3> indices_{};
     glm::mat4 model_{ 1.0f };
-  };
-
-  class Camera {
-   public:
-
-    glm::mat4 view_{ 1.0f };
   };
 
   class Screen {
