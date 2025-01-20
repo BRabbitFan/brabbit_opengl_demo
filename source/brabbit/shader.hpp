@@ -19,7 +19,7 @@ namespace brabbit {
     auto operator=(Shader&&) -> Shader& = delete;
 
    public:
-    virtual ~Shader() = default;
+    virtual ~Shader();
 
    public:
     auto getId() const -> GLuint;
@@ -57,42 +57,9 @@ namespace brabbit {
     GLuint id_{ 0 };
   };
 
-
-  class CubeShader : public Shader {
-   public:
-    explicit CubeShader();
-    virtual ~CubeShader() override = default;
-
-   public:
-    auto setModel(const glm::mat4& model) const -> void;
-    auto setView(const glm::mat4& view) const -> void;
-    auto setProjection(const glm::mat4& projection) const -> void;
-
-    auto setObjectColor(const glm::vec4& color) const -> void;
-    auto setLightColor(const glm::vec4& color) const -> void;
-    auto setLightPosition(const glm::vec3& position) const -> void;
-    auto setCameraPosition(const glm::vec3& position) const -> void;
-  };
-
-
-
-  class LightCubeShader : public Shader {
-   public:
-    explicit LightCubeShader();
-    virtual ~LightCubeShader() override = default;
-
-   public:
-    auto setModel(const glm::mat4& model) const -> void;
-    auto setView(const glm::mat4& view) const -> void;
-    auto setProjection(const glm::mat4& projection) const -> void;
-
-    auto setLightColor(const glm::vec4& color) const -> void;
-  };
-
-
   template <typename _Type>
   auto LoadCachedShader() -> _Type* {
-    static_assert(std::is_base_of_v<Shader, _Type>, "Type must be derived from Shader");
+    static_assert(std::is_base_of_v<Shader, _Type>, "_Type must be derived from Shader");
 
     const char* type = typeid(_Type).name();
 
@@ -101,7 +68,10 @@ namespace brabbit {
       return static_cast<_Type*>(iter->second.get());
     }
 
-    return static_cast<_Type*>(Cache.emplace(type, std::make_unique<_Type>()).first->second.get());
+    auto base = std::make_unique<_Type>();
+    auto* derived = static_cast<_Type*>(base.get());
+    Cache.emplace(type, std::move(base));
+    return derived;
   }
 
 }  // namespace brabbit

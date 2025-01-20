@@ -10,19 +10,29 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include <camera.hpp>
-#include <shader.hpp>
+#include <brabbit/camera.hpp>
+#include <brabbit/shader.hpp>
+#include <brabbit/scene_object.hpp>
+#include <brabbit/light.hpp>
 
 namespace brabbit {
 
+  class Window;
   class SceneObject;
-  class LightCube;
+  class Light;
 
   class Scene {
+    friend class Window;
+
    public:
     explicit Scene();
     explicit Scene(std::size_t width, std::size_t height, std::size_t depth);
     virtual ~Scene();
+
+   public:
+    auto getWindow() const -> const Window*;
+    auto getWindow() -> Window*;
+    auto setWindow(Window* window) -> void;
 
    public:
     auto getWidth() const -> std::size_t;
@@ -52,19 +62,24 @@ namespace brabbit {
     auto eraseObject(const SceneObject* object) -> void;
     auto takeObject(const SceneObject* object) -> std::unique_ptr<SceneObject>;
 
-    auto drawObjects(const glm::mat4& projection) -> void;
+    auto drawObjects() -> void;
 
    public:
     auto getCamera() const -> const Camera*;
     auto getCamera() -> Camera*;
 
-    auto getLightCube() const -> const LightCube*;
-    auto getLightCube() -> LightCube*;
+    auto getLight() const -> const Light*;
+    auto getLight() -> Light*;
+
+   protected:
+    auto processFrame(double delta_time) -> void;
 
    private:
     auto updateScaleFactor() -> void;
 
    private:
+    Window* window_{ nullptr };
+
     std::size_t width_{ 1 };
     std::size_t height_{ 1 };
     std::size_t depth_{ 1 };
@@ -74,69 +89,7 @@ namespace brabbit {
     std::unique_ptr<Camera> camera_{ nullptr };
 
     std::vector<std::unique_ptr<SceneObject>> objects_{};
-    LightCube* light_{ nullptr };
-  };
-
-
-
-  class SceneObject {
-    friend class Scene;
-
-   public:
-    explicit SceneObject();
-    virtual ~SceneObject();
-
-   public:
-    auto getModel() const -> const glm::mat4&;
-    auto setModel(const glm::mat4& model) -> void;
-    auto setModel(glm::mat4&& model) -> void;
-
-    auto getScaledModel() const -> glm::mat4;
-
-    auto getShader() const -> const Shader*;
-    auto getShader() -> Shader*;
-    auto setShader(Shader* shader) -> void;
-
-    auto getScene() const -> const Scene*;
-    auto getScene() -> Scene*;
-
-   protected:
-    virtual auto draw(const glm::mat4& view, const glm::mat4& projection) -> void = 0;
-
-   protected:
-    glm::mat4 model_{ 1.0f };
-
-    Shader* shader_{ nullptr };
-    Scene* scene_{ nullptr };
-
-    unsigned int vao_{ 0 };
-  };
-
-
-
-  class LightCube : public SceneObject {
-   public:
-    explicit LightCube();
-    virtual ~LightCube() override;
-
-   public:
-    auto getColor() const -> const glm::vec4&;
-    auto setColor(const glm::vec4& color) -> void;
-
-    auto getPosition() const -> const glm::vec3&;
-    auto setPosition(const glm::vec3& position) -> void;
-
-   protected:
-    auto draw(const glm::mat4& view, const glm::mat4& projection) -> void override;
-
-   private:
-    auto updateModel() -> void;
-
-   private:
-    unsigned int vbo_{ 0 };
-    unsigned int ebo_{ 0 };
-    glm::vec3 position_{ 1.0f, 1.0f, 1.0f };
-    glm::vec4 color_{ 1.0f, 1.0f, 1.0f, 1.0f };
+    Light* light_{ nullptr };
   };
 
 }  // namespace brabbit

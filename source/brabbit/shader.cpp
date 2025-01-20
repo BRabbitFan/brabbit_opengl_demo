@@ -7,7 +7,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include <shader.hpp>
+#include <brabbit/shader.hpp>
 
 namespace brabbit {
 
@@ -53,6 +53,10 @@ namespace brabbit {
 
     glDeleteShader(vertex_shader);
     glDeleteShader(fragment_shader);
+  }
+
+  Shader::~Shader() {
+    glDeleteProgram(id_);
   }
 
   auto Shader::getId() const -> GLuint {
@@ -125,58 +129,6 @@ namespace brabbit {
 
   auto Shader::setMat4(std::string_view name, const glm::mat4& value) const -> void {
     glUniformMatrix4fv(getLocation(name), 1, GL_FALSE, glm::value_ptr(value));
-  }
-
-
-
-  CubeShader::CubeShader() : Shader{ "cube.vs"sv, "cube.fs"sv } {}
-
-  auto CubeShader::setModel(const glm::mat4& model) const -> void {
-    setMat4("model"sv, model);
-  }
-
-  auto CubeShader::setView(const glm::mat4& view) const -> void {
-    setMat4("view"sv, view);
-  }
-
-  auto CubeShader::setProjection(const glm::mat4& projection) const -> void {
-    setMat4("projection"sv, projection);
-  }
-
-  auto CubeShader::setObjectColor(const glm::vec4& color) const -> void {
-    setVec4("object_color"sv, color);
-  }
-
-  auto CubeShader::setLightColor(const glm::vec4& color) const -> void {
-    setVec4("light_color"sv, color);
-  }
-
-  auto CubeShader::setLightPosition(const glm::vec3& position) const -> void {
-    setVec3("light_position"sv, position);
-  }
-
-  auto CubeShader::setCameraPosition(const glm::vec3& position) const -> void {
-    setVec3("camera_position"sv, position);
-  }
-
-
-
-  LightCubeShader::LightCubeShader() : Shader{ "light_cube.vs"sv, "light_cube.fs"sv } {}
-
-  auto LightCubeShader::setModel(const glm::mat4& model) const -> void {
-    setMat4("model"sv, model);
-  }
-
-  auto LightCubeShader::setView(const glm::mat4& view) const -> void {
-    setMat4("view"sv, view);
-  }
-
-  auto LightCubeShader::setProjection(const glm::mat4& projection) const -> void {
-    setMat4("projection"sv, projection);
-  }
-
-  auto LightCubeShader::setLightColor(const glm::vec4& color) const -> void {
-    setVec4("light_color"sv, color);
   }
 
 }  // namespace brabbit
