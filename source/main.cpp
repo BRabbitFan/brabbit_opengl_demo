@@ -104,11 +104,9 @@ auto main(int argc, char** argv) -> int {
     }
 
     auto* camera = scene.getCamera();
-    const auto speed = camera->speed() * delta_time;
-    const auto& front = camera->front();
-    const auto& up = camera->up();
 
     auto position = camera->position();
+    const auto speed = camera->speed() * delta_time;
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
       position += camera->front() * speed;
@@ -141,7 +139,7 @@ auto main(int argc, char** argv) -> int {
 
     auto x_offset = cursor_x - last_x;
     auto y_offset = last_y - cursor_y;  // reversed since y-coordinates go from bottom to top
-    if (x_offset > 0.0 || y_offset > 0.0) {
+    if (x_offset || y_offset) {
       last_x = cursor_x;
       last_y = cursor_y;
 

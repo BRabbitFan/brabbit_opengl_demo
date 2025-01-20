@@ -56,9 +56,9 @@ namespace brabbit {
 
    private:
     Model* data_{ nullptr };
-    unsigned int vbo_{ 0 };
+    unsigned int vertex_vbo_{ 0 };
+    unsigned int index_ebo_{ 0 };
     unsigned int normal_vbo_{ 0 };
-    unsigned int ebo_{ 0 };
   };
 
 

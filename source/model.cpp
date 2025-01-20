@@ -188,19 +188,19 @@ namespace brabbit {
     // Create and bind a VAO(Vertex Array Object)
     glGenVertexArrays(1, &vao_);
 
-
-
     // Load attributes in VAO
     // From now on, any function call in this target will action on our VAO buffer.
     glBindVertexArray(vao_);
 
+
+
     // Generate a VBO(Vertex Buffer Object) buffer.
     // This buffer is use to send Vertex data to GPU from CPU.
-    glGenBuffers(1, &vbo_);
+    glGenBuffers(1, &vertex_vbo_);
 
     // Bind VBO buffer to GL_ARRAY_BUFFER(array buffer) target.
     // From now on, any function call in this target will action on our VBO buffer.
-    glBindBuffer(GL_ARRAY_BUFFER, vbo_);
+    glBindBuffer(GL_ARRAY_BUFFER, vertex_vbo_);
 
     // Copy real vertices data into VBO buffer.
     // param 4:
@@ -210,8 +210,8 @@ namespace brabbit {
     glBufferData(GL_ARRAY_BUFFER, data->verticesSize(), data->verticesData(), GL_STATIC_DRAW);
 
     // EBO/IBO (Element Buffer Object/Index Buffer Object)
-    glGenBuffers(1, &ebo_);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo_);
+    glGenBuffers(1, &index_ebo_);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_ebo_);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, data->indicesSize(), data->indicesData(), GL_STATIC_DRAW);
 
     // Tell GPU how to decode our vertices data.
@@ -222,17 +222,18 @@ namespace brabbit {
     // param 4: [bool] need to normalize or not, GL_TRUE or GL_FALSE
     // param 5: [int] stride, data's stride between each group
     // param 6: [void*] offset, offset of data's begin position
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), reinterpret_cast<void*>(0));
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), reinterpret_cast<void*>(0));
     // Make data attribute in location 0 enabled
     // Call the 'glDisableVertexAttribArray' in some where to disabled it.
     glEnableVertexAttribArray(0);
 
 
 
+    // VBO for normals, EBO is unnecessary
     glGenBuffers(1, &normal_vbo_);
     glBindBuffer(GL_ARRAY_BUFFER, normal_vbo_);
     glBufferData(GL_ARRAY_BUFFER, data->normalsSize(), data->normalsData(), GL_STATIC_DRAW);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), reinterpret_cast<void*>(0));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), reinterpret_cast<void*>(0));
     glEnableVertexAttribArray(1);
   }
 
