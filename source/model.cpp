@@ -2,6 +2,8 @@
 #include <filesystem>
 #include <fstream>
 
+#include <glad/glad.h>
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -92,11 +94,6 @@ namespace brabbit {
           auto stream = std::istringstream{ line.substr(VERTEX.size()) };
           stream >> vertex.x >> vertex.y >> vertex.z;
 
-          // cube test
-          vertex.x = vertex.x / 20.0f / 2;
-          vertex.y = vertex.y / 20.0f / 2;
-          vertex.z = vertex.z / 20.0f / 2;
-
           if (stream.fail()) {
             stl.facets.pop_back();
           }
@@ -166,20 +163,78 @@ namespace brabbit {
     return indices_.size() * sizeof(glm::uvec3);
   }
 
-  auto Model::model() const -> const glm::mat4& {
-    return model_;
+  ModelObject::ModelObject(std::unique_ptr<Model>& data) : ModelObject{ data.get() } {}
+
+  ModelObject::ModelObject(Model* data) : data_{ data } {
+    // Create and bind a VAO(Vertex Array Object)
+    glGenVertexArrays(1, &vao_);
+
+    // Load attributes in VAO
+    // From now on, any function call in this target will action on our VAO buffer.
+    glBindVertexArray(vao_);
+
+
+
+    // Generate a VBO(Vertex Buffer Object) buffer.
+    // This buffer is use to send Vertex data to GPU from CPU.
+    glGenBuffers(1, &vbo_);
+
+    // Bind VBO buffer to GL_ARRAY_BUFFER(array buffer) target.
+    // From now on, any function call in this target will action on our VBO buffer.
+    glBindBuffer(GL_ARRAY_BUFFER, vbo_);
+
+    // Copy real vertices data into VBO buffer.
+    // param 4:
+    // GL_STATIC_DRAW: The data will never or rarely change.
+    // GL_DYNAMIC_DRAW：The data will be changed a lot.
+    // GL_STREAM_DRAW：The data changes every time it is plotted.
+    glBufferData(GL_ARRAY_BUFFER, data->verticesSize(), data->verticesData(), GL_STATIC_DRAW);
+
+
+
+    // EBO/IBO (Element Buffer Object/Index Buffer Object)
+    glGenBuffers(1, &ebo_);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo_);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, data->indicesSize(), data->indicesData(), GL_STATIC_DRAW);
+
+
+
+    // Tell GPU how to decode our vertices data.
+    // Set attribute pointer's infomation about our vertices data. (save in VAO)
+    // param 1: [int] location index in vertex shader source: 'layout(location = 0)'
+    // param 2: [int] size of data, 3 means it's a 'vec3' attribute
+    // param 3: [enum] type of data, GL_FLOAT means float (of course..)
+    // param 4: [bool] need to normalize or not, GL_TRUE or GL_FALSE
+    // param 5: [int] stride, data's stride between each group
+    // param 6: [void*] offset, offset of data's begin position
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), reinterpret_cast<void*>(0));
+    // Make data attribute in location 0 enabled
+    // Call the 'glDisableVertexAttribArray' in some where to disabled it.
+    glEnableVertexAttribArray(0);
   }
 
-  auto Model::getModel() const -> glm::mat4 {
-    return model_;
+  ModelObject::~ModelObject() {
+
   }
 
-  auto Model::setModel(const glm::mat4& model) -> void {
-    model_ = model;
+  auto ModelObject::data() const -> const Model* {
+    return data_;
   }
 
-  auto Model::setModel(glm::mat4&& model) -> void {
-    model_ = std::move(model);
+  auto ModelObject::setData(Model* data) -> void {
+    data_ = data;
+  }
+
+  auto ModelObject::draw() -> void {
+    // Load attributes in VAO
+    glBindVertexArray(vao_);
+
+    // Use EBO and VB0 to draw the triangle
+    // param 1: [enum] type to draw
+    // param 2: [int] index count of element array
+    // param 3: [enum] type of index array
+    // param 4: [void*] offset of index array
+    glDrawElements(GL_TRIANGLES, data_->indicesSize(), GL_UNSIGNED_INT, reinterpret_cast<void*>(0));
   }
 
 }  // namespace brabbit

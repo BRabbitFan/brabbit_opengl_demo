@@ -1,11 +1,14 @@
 #pragma once
 
+#include <memory>
 #include <string_view>
 #include <vector>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+
+#include <scene.hpp>
 
 namespace brabbit {
 
@@ -28,17 +31,29 @@ namespace brabbit {
     auto indicesData() const -> const glm::uint*;
     auto indicesSize() const -> std::size_t;
 
-   public:
-    auto model() const -> const glm::mat4&;
-    auto getModel() const -> glm::mat4;
-    auto setModel(const glm::mat4& model) -> void;
-    auto setModel(glm::mat4&& model) -> void;
-
    protected:
     std::vector<glm::vec3> vertices_{};
     std::vector<glm::uvec3> indices_{};
-    glm::mat4 model_{ 1.0f };
   };
+
+  class ModelObject : public SceneObject {
+   public:
+    explicit ModelObject(std::unique_ptr<Model>& data);
+    explicit ModelObject(Model* data);
+    virtual ~ModelObject();
+
+   public:
+    auto data() const -> const Model*;
+    auto setData(Model* data) -> void;
+
+   public:
+    auto draw() -> void override;
+
+   private:
+    Model* data_{ nullptr };
+  };
+
+
 
   class Screen {
    public:
