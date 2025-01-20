@@ -33,7 +33,7 @@ auto main(int argc, char** argv) -> int {
 
 
   // Create a window.
-  auto screen = brabbit::Screen{ 800, 600 };
+  auto screen = brabbit::Screen{ 1920, 1080 };
   constexpr auto WIDNOW_TITLE = "BRabbit's OpenGL Demo"sv;
   auto* const window = glfwCreateWindow(screen.width(),
                                         screen.height(),
@@ -81,6 +81,8 @@ auto main(int argc, char** argv) -> int {
 
 
   auto scene = brabbit::Scene{ 50, 50, 50 };
+  scene.getCamera()->setPosition({ 0.0f, 0.0f, 3.0f });
+  // scene.getLightCube()->setPosition({ 1.2f, 1.0f, 2.0f });
 
   auto model = std::make_unique<brabbit::Model>("cube.stl"sv);
   auto* object = scene.emplaceObject<brabbit::ModelObject>(model);
@@ -105,23 +107,31 @@ auto main(int argc, char** argv) -> int {
 
     auto* camera = scene.getCamera();
 
-    auto position = camera->position();
-    const auto speed = camera->speed() * delta_time;
+    auto position = camera->getPosition();
+    const auto speed = camera->getSpeed() * delta_time;
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-      position += camera->front() * speed;
+      position += camera->getFront() * speed;
     }
 
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-      position -= camera->front() * speed;
+      position -= camera->getFront() * speed;
     }
 
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-      position -= camera->right() * speed;
+      position -= camera->getRight() * speed;
     }
 
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-      position += camera->right() * speed;
+      position += camera->getRight() * speed;
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
+      position += camera->getUp() * speed;
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
+      position -= camera->getUp() * speed;
     }
 
     camera->setPosition(std::move(position));
@@ -147,8 +157,8 @@ auto main(int argc, char** argv) -> int {
       x_offset *= sensitivity;
       y_offset *= sensitivity;
 
-      auto yaw = camera->yaw() + x_offset;
-      auto pitch = static_cast<float>(camera->pitch() + y_offset);
+      auto yaw = camera->getYaw() + x_offset;
+      auto pitch = static_cast<float>(camera->getPitch() + y_offset);
       pitch = std::max(-89.0f, std::min(89.0f, pitch));
 
       auto front = glm::vec3{

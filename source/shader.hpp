@@ -71,6 +71,7 @@ namespace brabbit {
     auto setObjectColor(const glm::vec4& color) const -> void;
     auto setLightColor(const glm::vec4& color) const -> void;
     auto setLightPosition(const glm::vec3& position) const -> void;
+    auto setCameraPosition(const glm::vec3& position) const -> void;
   };
 
 

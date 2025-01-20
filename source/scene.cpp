@@ -98,7 +98,7 @@ namespace brabbit {
   auto Scene::drawObjects(const glm::mat4& projection) -> void {
     for (const auto& object : objects_) {
       if (object) {
-        object->draw(camera_->view(), projection);
+        object->draw(camera_->getView(), projection);
       }
     }
   }

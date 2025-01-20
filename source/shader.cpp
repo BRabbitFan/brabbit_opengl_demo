@@ -155,6 +155,10 @@ namespace brabbit {
     setVec3("light_position"sv, position);
   }
 
+  auto CubeShader::setCameraPosition(const glm::vec3& position) const -> void {
+    setVec3("camera_position"sv, position);
+  }
+
 
 
   LightCubeShader::LightCubeShader() : Shader{ "light_cube.vs"sv, "light_cube.fs"sv } {}

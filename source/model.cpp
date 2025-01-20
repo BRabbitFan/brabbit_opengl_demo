@@ -254,17 +254,20 @@ namespace brabbit {
 
     shader->use();
 
-    auto current_frame_time = glfwGetTime();
-    GLfloat r = std::sin(current_frame_time) / 2.0f + 0.3f;
-    GLfloat g = std::cos(current_frame_time) / 2.0f + 0.4f;
-    GLfloat b = std::sin(current_frame_time) / 2.0f + 0.5f;
-    shader->setObjectColor({ r, g, b, 1.0f });
+    // auto current_frame_time = glfwGetTime();
+    // GLfloat r = std::sin(current_frame_time) / 2.0f + 0.3f;
+    // GLfloat g = std::cos(current_frame_time) / 2.0f + 0.4f;
+    // GLfloat b = std::sin(current_frame_time) / 2.0f + 0.5f;
+    // shader->setObjectColor({ r, g, b, 1.0f });
+    shader->setObjectColor({ 1.0f, 0.5f, 0.31f, 1.0f });
     auto* light_cube = scene_->getLightCube();
+    auto* camera = scene_->getCamera();
     shader->setLightColor(light_cube->getColor());
     shader->setLightPosition(light_cube->getPosition());
+    shader->setCameraPosition(camera->getPosition());
 
-    auto radians = static_cast<float>(current_frame_time) * glm::radians(50.0f);
-    model_ = glm::rotate(glm::mat4{ 1.0f }, radians, { 0.5f, 1.0f, 0.0f });
+    // auto radians = static_cast<float>(current_frame_time) * glm::radians(50.0f);
+    // model_ = glm::rotate(glm::mat4{ 1.0f }, radians, { 0.5f, 1.0f, 0.0f });
     shader->setModel(getScaledModel());
     shader->setView(view);
     shader->setProjection(projection);

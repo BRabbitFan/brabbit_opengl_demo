@@ -1,4 +1,3 @@
-#include "camera.hpp"
 #include <camera.hpp>
 
 namespace brabbit {
@@ -7,7 +6,7 @@ namespace brabbit {
     updateView();
   }
 
-  auto Camera::position() const -> const glm::vec3& {
+  auto Camera::getPosition() const -> const glm::vec3& {
     return position_;
   }
 
@@ -23,7 +22,7 @@ namespace brabbit {
     updateView();
   }
 
-  auto Camera::front() const -> const glm::vec3& {
+  auto Camera::getFront() const -> const glm::vec3& {
     return front_;
   }
 
@@ -39,7 +38,7 @@ namespace brabbit {
     updateView();
   }
 
-  auto Camera::up() const -> const glm::vec3& {
+  auto Camera::getUp() const -> const glm::vec3& {
     return up_;
   }
 
@@ -53,11 +52,11 @@ namespace brabbit {
     updateView();
   }
 
-  auto Camera::right() const -> glm::vec3 {
+  auto Camera::getRight() const -> glm::vec3 {
     return glm::normalize(glm::cross(front_, up_));
   }
 
-  auto Camera::target() const -> const glm::vec3& {
+  auto Camera::getTarget() const -> const glm::vec3& {
     return target_;
   }
 
@@ -73,19 +72,19 @@ namespace brabbit {
     updateView();
   }
 
-  auto Camera::yaw() const -> float {
+  auto Camera::getYaw() const -> float {
     return glm::degrees(std::atan2(front_.z, front_.x));
   }
 
-  auto Camera::pitch() const -> float {
+  auto Camera::getPitch() const -> float {
     return glm::degrees(std::asin(front_.y));
   }
 
-  auto Camera::view() const -> const glm::mat4& {
+  auto Camera::getView() const -> const glm::mat4& {
     return view_;
   }
 
-  auto Camera::speed() const -> float {
+  auto Camera::getSpeed() const -> float {
     return speed_;
   }
 
