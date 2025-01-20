@@ -13,11 +13,6 @@
 namespace brabbit {
 
   class Shader {
-    Shader(const Shader&) = delete;
-    Shader(Shader&&) = delete;
-    auto operator=(const Shader&) -> Shader& = delete;
-    auto operator=(Shader&&) -> Shader& = delete;
-
    public:
     virtual ~Shader();
 

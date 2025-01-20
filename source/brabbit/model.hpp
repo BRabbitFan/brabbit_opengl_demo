@@ -12,11 +12,6 @@
 namespace brabbit {
 
   class Model {
-    Model(const Model&) = delete;
-    Model(Model&&) = delete;
-    auto operator=(const Model&) -> Model& = delete;
-    auto operator=(Model&&) -> Model& = delete;
-
    public:
     explicit Model(std::string_view model_name);
     virtual ~Model() = default;
