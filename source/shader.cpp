@@ -151,6 +151,10 @@ namespace brabbit {
     setVec4("light_color"sv, color);
   }
 
+  auto CubeShader::setLightPosition(const glm::vec3& position) const -> void {
+    setVec3("light_position"sv, position);
+  }
+
 
 
   LightCubeShader::LightCubeShader() : Shader{ "light_cube.vs"sv, "light_cube.fs"sv } {}

@@ -204,8 +204,9 @@ namespace brabbit {
   }  // namespace
 
 
-  LightCube::LightCube() {
-    model_ = glm::translate(glm::mat4{ 1.0f }, { 1.0f, 1.0f, 1.0f });
+
+  LightCube::LightCube() : position_{ 1.0f, 1.0f, 1.0f }, color_{ 1.0f, 1.0f, 1.0f, 1.0f } {
+    updateModel();
     shader_ = LoadCachedShader<LightCubeShader>();
 
     // Create and bind a VAO(Vertex Array Object)
@@ -262,6 +263,15 @@ namespace brabbit {
     color_ = color;
   }
 
+  auto LightCube::getPosition() const -> const glm::vec3& {
+    return position_;
+  }
+
+  auto LightCube::setPosition(const glm::vec3& position) -> void {
+    position_ = position;
+    updateModel();
+  }
+
   auto LightCube::draw(const glm::mat4& view, const glm::mat4& projection) -> void {
     auto* shader = static_cast<LightCubeShader*>(shader_);
 
@@ -281,6 +291,10 @@ namespace brabbit {
     // param 3: [enum] type of index array
     // param 4: [void*] offset of index array
     glDrawElements(GL_TRIANGLES, LIGHT_INDICES_SIZE, GL_UNSIGNED_INT, reinterpret_cast<void*>(0));
+  }
+
+  auto LightCube::updateModel() -> void {
+    model_ = glm::translate(glm::mat4{ 1.0f }, position_);
   }
 
 }  // namespace brabbit

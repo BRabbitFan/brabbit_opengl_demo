@@ -110,8 +110,6 @@ namespace brabbit {
     Scene* scene_{ nullptr };
 
     unsigned int vao_{ 0 };
-    unsigned int vbo_{ 0 };
-    unsigned int ebo_{ 0 };
   };
 
 
@@ -125,10 +123,19 @@ namespace brabbit {
     auto getColor() const -> const glm::vec4&;
     auto setColor(const glm::vec4& color) -> void;
 
+    auto getPosition() const -> const glm::vec3&;
+    auto setPosition(const glm::vec3& position) -> void;
+
    protected:
     auto draw(const glm::mat4& view, const glm::mat4& projection) -> void override;
 
    private:
+    auto updateModel() -> void;
+
+   private:
+    unsigned int vbo_{ 0 };
+    unsigned int ebo_{ 0 };
+    glm::vec3 position_{ 1.0f, 1.0f, 1.0f };
     glm::vec4 color_{ 1.0f, 1.0f, 1.0f, 1.0f };
   };
 

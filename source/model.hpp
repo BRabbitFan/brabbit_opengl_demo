@@ -27,12 +27,17 @@ namespace brabbit {
     auto verticesData() const -> const float*;
     auto verticesSize() const -> std::size_t;
 
+    auto normals() const -> const std::vector<glm::vec3>&;
+    auto normalsData() const -> const float*;
+    auto normalsSize() const -> std::size_t;
+
     auto indices() const -> const std::vector<glm::uvec3>&;
     auto indicesData() const -> const glm::uint*;
     auto indicesSize() const -> std::size_t;
 
    protected:
     std::vector<glm::vec3> vertices_{};
+    std::vector<glm::vec3> normals_{};
     std::vector<glm::uvec3> indices_{};
   };
 
@@ -51,6 +56,9 @@ namespace brabbit {
 
    private:
     Model* data_{ nullptr };
+    unsigned int vbo_{ 0 };
+    unsigned int normal_vbo_{ 0 };
+    unsigned int ebo_{ 0 };
   };
 
 

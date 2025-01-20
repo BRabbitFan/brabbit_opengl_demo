@@ -138,6 +138,7 @@ namespace brabbit {
       vertices_.insert(vertices_.end(),
                        std::make_move_iterator(facet.vertices.begin()),
                        std::make_move_iterator(facet.vertices.end()));
+      normals_.insert(normals_.end(), 3, facet.normal);
     }
   }
 
@@ -151,6 +152,18 @@ namespace brabbit {
 
   auto Model::verticesSize() const -> std::size_t {
     return vertices_.size() * sizeof(glm::vec3);
+  }
+
+  auto Model::normals() const -> const std::vector<glm::vec3>& {
+    return normals_;
+  }
+
+  auto Model::normalsData() const -> const float* {
+    return glm::value_ptr(normals_.front());
+  }
+
+  auto Model::normalsSize() const -> std::size_t {
+    return normals_.size() * sizeof(glm::vec3);
   }
 
   auto Model::indices() const -> const std::vector<glm::uvec3>& {
@@ -170,8 +183,12 @@ namespace brabbit {
   ModelObject::ModelObject(Model* data) : data_{ data } {
     shader_ = LoadCachedShader<CubeShader>();
 
+
+
     // Create and bind a VAO(Vertex Array Object)
     glGenVertexArrays(1, &vao_);
+
+
 
     // Load attributes in VAO
     // From now on, any function call in this target will action on our VAO buffer.
@@ -209,6 +226,14 @@ namespace brabbit {
     // Make data attribute in location 0 enabled
     // Call the 'glDisableVertexAttribArray' in some where to disabled it.
     glEnableVertexAttribArray(0);
+
+
+
+    glGenBuffers(1, &normal_vbo_);
+    glBindBuffer(GL_ARRAY_BUFFER, normal_vbo_);
+    glBufferData(GL_ARRAY_BUFFER, data->normalsSize(), data->normalsData(), GL_STATIC_DRAW);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), reinterpret_cast<void*>(0));
+    glEnableVertexAttribArray(1);
   }
 
   ModelObject::~ModelObject() {
@@ -233,7 +258,9 @@ namespace brabbit {
     GLfloat g = std::cos(current_frame_time) / 2.0f + 0.4f;
     GLfloat b = std::sin(current_frame_time) / 2.0f + 0.5f;
     shader->setObjectColor({ r, g, b, 1.0f });
-    shader->setLightColor(scene_->getLightCube()->getColor());
+    auto* light_cube = scene_->getLightCube();
+    shader->setLightColor(light_cube->getColor());
+    shader->setLightPosition(light_cube->getPosition());
 
     auto radians = static_cast<float>(current_frame_time) * glm::radians(50.0f);
     model_ = glm::rotate(glm::mat4{ 1.0f }, radians, { 0.5f, 1.0f, 0.0f });
