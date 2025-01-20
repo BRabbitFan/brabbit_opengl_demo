@@ -1,15 +1,15 @@
 #version 450 core
 
-in vec4 vertex_color;
-
 out vec4 FragColor;
 
-uniform vec4 global_color;
+uniform vec4 object_color;
+uniform vec4 light_color;
 
 void main() {
-  if (global_color.a > 0.0) {
-    FragColor = global_color;
-  } else {
-    FragColor = vertex_color;
-  }
+  float ambient_strength = 0.1;
+  vec3 ambient = ambient_strength * light_color.rgb;
+  vec3 result = ambient * object_color.rgb;
+
+  // FragColor = object_color * light_color;
+  FragColor = vec4(result.rgb, 1.0);
 }

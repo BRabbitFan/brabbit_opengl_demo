@@ -3,6 +3,7 @@
 #include <fstream>
 
 #include <glad/glad.h>
+#include <GLFW/glfw3.h>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -10,6 +11,7 @@
 
 #include <float.h>
 #include <model.hpp>
+#include "shader.hpp"
 
 namespace brabbit {
 
@@ -166,14 +168,14 @@ namespace brabbit {
   ModelObject::ModelObject(std::unique_ptr<Model>& data) : ModelObject{ data.get() } {}
 
   ModelObject::ModelObject(Model* data) : data_{ data } {
+    shader_ = LoadCachedShader<CubeShader>();
+
     // Create and bind a VAO(Vertex Array Object)
     glGenVertexArrays(1, &vao_);
 
     // Load attributes in VAO
     // From now on, any function call in this target will action on our VAO buffer.
     glBindVertexArray(vao_);
-
-
 
     // Generate a VBO(Vertex Buffer Object) buffer.
     // This buffer is use to send Vertex data to GPU from CPU.
@@ -190,14 +192,10 @@ namespace brabbit {
     // GL_STREAM_DRAW：The data changes every time it is plotted.
     glBufferData(GL_ARRAY_BUFFER, data->verticesSize(), data->verticesData(), GL_STATIC_DRAW);
 
-
-
     // EBO/IBO (Element Buffer Object/Index Buffer Object)
     glGenBuffers(1, &ebo_);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo_);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, data->indicesSize(), data->indicesData(), GL_STATIC_DRAW);
-
-
 
     // Tell GPU how to decode our vertices data.
     // Set attribute pointer's infomation about our vertices data. (save in VAO)
@@ -225,7 +223,24 @@ namespace brabbit {
     data_ = data;
   }
 
-  auto ModelObject::draw() -> void {
+  auto ModelObject::draw(const glm::mat4& view, const glm::mat4& projection) -> void {
+    auto* shader = static_cast<CubeShader*>(shader_);
+
+    shader->use();
+
+    auto current_frame_time = glfwGetTime();
+    GLfloat r = std::sin(current_frame_time) / 2.0f + 0.3f;
+    GLfloat g = std::cos(current_frame_time) / 2.0f + 0.4f;
+    GLfloat b = std::sin(current_frame_time) / 2.0f + 0.5f;
+    shader->setObjectColor({ r, g, b, 1.0f });
+    shader->setLightColor(scene_->getLightCube()->getColor());
+
+    auto radians = static_cast<float>(current_frame_time) * glm::radians(50.0f);
+    model_ = glm::rotate(glm::mat4{ 1.0f }, radians, { 0.5f, 1.0f, 0.0f });
+    shader->setModel(getScaledModel());
+    shader->setView(view);
+    shader->setProjection(projection);
+
     // Load attributes in VAO
     glBindVertexArray(vao_);
 

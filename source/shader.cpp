@@ -1,3 +1,4 @@
+#include "shader.hpp"
 #include <filesystem>
 #include <fstream>
 #include <string>
@@ -142,8 +143,32 @@ namespace brabbit {
     setMat4("projection"sv, projection);
   }
 
-  auto CubeShader::setGlobalColor(const glm::vec4& color) const -> void {
-    setVec4("global_color"sv, color);
+  auto CubeShader::setObjectColor(const glm::vec4& color) const -> void {
+    setVec4("object_color"sv, color);
+  }
+
+  auto CubeShader::setLightColor(const glm::vec4& color) const -> void {
+    setVec4("light_color"sv, color);
+  }
+
+
+
+  LightCubeShader::LightCubeShader() : Shader{ "light_cube.vs"sv, "light_cube.fs"sv } {}
+
+  auto LightCubeShader::setModel(const glm::mat4& model) const -> void {
+    setMat4("model"sv, model);
+  }
+
+  auto LightCubeShader::setView(const glm::mat4& view) const -> void {
+    setMat4("view"sv, view);
+  }
+
+  auto LightCubeShader::setProjection(const glm::mat4& projection) const -> void {
+    setMat4("projection"sv, projection);
+  }
+
+  auto LightCubeShader::setLightColor(const glm::vec4& color) const -> void {
+    setVec4("light_color"sv, color);
   }
 
 }  // namespace brabbit

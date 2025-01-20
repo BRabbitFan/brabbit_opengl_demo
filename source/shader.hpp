@@ -1,6 +1,9 @@
 #pragma once
 
+#include <map>
+#include <memory>
 #include <string_view>
+#include <type_traits>
 
 #include <glad/glad.h>
 #include <glm/glm.hpp>
@@ -65,7 +68,38 @@ namespace brabbit {
     auto setView(const glm::mat4& view) const -> void;
     auto setProjection(const glm::mat4& projection) const -> void;
 
-    auto setGlobalColor(const glm::vec4& color) const -> void;
+    auto setObjectColor(const glm::vec4& color) const -> void;
+    auto setLightColor(const glm::vec4& color) const -> void;
   };
+
+
+
+  class LightCubeShader : public Shader {
+   public:
+    explicit LightCubeShader();
+    virtual ~LightCubeShader() override = default;
+
+   public:
+    auto setModel(const glm::mat4& model) const -> void;
+    auto setView(const glm::mat4& view) const -> void;
+    auto setProjection(const glm::mat4& projection) const -> void;
+
+    auto setLightColor(const glm::vec4& color) const -> void;
+  };
+
+
+  template <typename _Type>
+  auto LoadCachedShader() -> _Type* {
+    static_assert(std::is_base_of_v<Shader, _Type>, "Type must be derived from Shader");
+
+    const char* type = typeid(_Type).name();
+
+    static std::map<const char*, std::unique_ptr<Shader>> Cache;
+    if (auto iter = Cache.find(type); iter != Cache.cend()) {
+      return static_cast<_Type*>(iter->second.get());
+    }
+
+    return static_cast<_Type*>(Cache.emplace(type, std::make_unique<_Type>()).first->second.get());
+  }
 
 }  // namespace brabbit

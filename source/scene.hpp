@@ -4,13 +4,20 @@
 #include <type_traits>
 #include <vector>
 
+#include <glad/glad.h>
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include <camera.hpp>
+#include <shader.hpp>
+
 namespace brabbit {
 
   class SceneObject;
+  class LightCube;
+
   class Scene {
    public:
     explicit Scene();
@@ -45,6 +52,15 @@ namespace brabbit {
     auto eraseObject(const SceneObject* object) -> void;
     auto takeObject(const SceneObject* object) -> std::unique_ptr<SceneObject>;
 
+    auto drawObjects(const glm::mat4& projection) -> void;
+
+   public:
+    auto getCamera() const -> const Camera*;
+    auto getCamera() -> Camera*;
+
+    auto getLightCube() const -> const LightCube*;
+    auto getLightCube() -> LightCube*;
+
    private:
     auto updateScaleFactor() -> void;
 
@@ -55,7 +71,10 @@ namespace brabbit {
 
     double scale_factor_{ 1.0 };
 
+    std::unique_ptr<Camera> camera_{ nullptr };
+
     std::vector<std::unique_ptr<SceneObject>> objects_{};
+    LightCube* light_{ nullptr };
   };
 
 
@@ -74,18 +93,43 @@ namespace brabbit {
 
     auto getScaledModel() const -> glm::mat4;
 
+    auto getShader() const -> const Shader*;
+    auto getShader() -> Shader*;
+    auto setShader(Shader* shader) -> void;
+
     auto getScene() const -> const Scene*;
     auto getScene() -> Scene*;
 
-   public:
-    virtual auto draw() -> void = 0;
+   protected:
+    virtual auto draw(const glm::mat4& view, const glm::mat4& projection) -> void = 0;
 
    protected:
     glm::mat4 model_{ 1.0f };
+
+    Shader* shader_{ nullptr };
     Scene* scene_{ nullptr };
+
     unsigned int vao_{ 0 };
     unsigned int vbo_{ 0 };
     unsigned int ebo_{ 0 };
+  };
+
+
+
+  class LightCube : public SceneObject {
+   public:
+    explicit LightCube();
+    virtual ~LightCube() override;
+
+   public:
+    auto getColor() const -> const glm::vec4&;
+    auto setColor(const glm::vec4& color) -> void;
+
+   protected:
+    auto draw(const glm::mat4& view, const glm::mat4& projection) -> void override;
+
+   private:
+    glm::vec4 color_{ 1.0f, 1.0f, 1.0f, 1.0f };
   };
 
 }  // namespace brabbit

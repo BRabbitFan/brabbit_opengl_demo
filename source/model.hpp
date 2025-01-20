@@ -40,14 +40,14 @@ namespace brabbit {
    public:
     explicit ModelObject(std::unique_ptr<Model>& data);
     explicit ModelObject(Model* data);
-    virtual ~ModelObject();
+    virtual ~ModelObject() override;
 
    public:
     auto data() const -> const Model*;
     auto setData(Model* data) -> void;
 
-   public:
-    auto draw() -> void override;
+   protected:
+    auto draw(const glm::mat4& view, const glm::mat4& projection) -> void override;
 
    private:
     Model* data_{ nullptr };

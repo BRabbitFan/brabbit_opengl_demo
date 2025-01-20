@@ -80,18 +80,12 @@ auto main(int argc, char** argv) -> int {
 
 
 
-
-  // Create a shader program.
-  auto shader = brabbit::CubeShader{};
-
-  auto camera = brabbit::Camera{};
-
   auto scene = brabbit::Scene{ 50, 50, 50 };
 
   auto model = std::make_unique<brabbit::Model>("cube.stl"sv);
   auto* object = scene.emplaceObject<brabbit::ModelObject>(model);
-  auto* data = object->data();
-  object->setModel(glm::rotate(object->getModel(), glm::radians(-55.0f), { 1.0f, 0.0f, 0.0f }));
+  // object->setModel(glm::translate(object->getModel(), { 10.0f, 0.0f, 0.0f }));
+  // object->setModel(glm::rotate(object->getModel(), glm::radians(-55.0f), { 1.0f, 0.0f, 0.0f }));
 
 
 
@@ -109,29 +103,30 @@ auto main(int argc, char** argv) -> int {
       glfwSetWindowShouldClose(window, true);
     }
 
-    const auto speed = camera.speed() * delta_time;
-    const auto& front = camera.front();
-    const auto& up = camera.up();
+    auto* camera = scene.getCamera();
+    const auto speed = camera->speed() * delta_time;
+    const auto& front = camera->front();
+    const auto& up = camera->up();
 
-    auto position = camera.position();
+    auto position = camera->position();
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-      position += camera.front() * speed;
+      position += camera->front() * speed;
     }
 
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-      position -= camera.front() * speed;
+      position -= camera->front() * speed;
     }
 
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-      position -= camera.right() * speed;
+      position -= camera->right() * speed;
     }
 
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-      position += camera.right() * speed;
+      position += camera->right() * speed;
     }
 
-    camera.setPosition(std::move(position));
+    camera->setPosition(std::move(position));
 
     static auto last_x = -1.0;
     static auto last_y = -1.0;
@@ -154,9 +149,9 @@ auto main(int argc, char** argv) -> int {
       x_offset *= sensitivity;
       y_offset *= sensitivity;
 
-      auto yaw = camera.yaw() + x_offset;
-      // auto pitch = camera.pitch() + y_offset;
-      auto pitch = std::max(-89.0f, std::min(89.0f, static_cast<float>(camera.pitch() + y_offset)));
+      auto yaw = camera->yaw() + x_offset;
+      auto pitch = static_cast<float>(camera->pitch() + y_offset);
+      pitch = std::max(-89.0f, std::min(89.0f, pitch));
 
       auto front = glm::vec3{
         std::cos(glm::radians(yaw)) * std::cos(glm::radians(pitch)),
@@ -164,15 +159,16 @@ auto main(int argc, char** argv) -> int {
         std::sin(glm::radians(yaw)) * std::cos(glm::radians(pitch)),
       };
 
-      camera.setFront(glm::normalize(front));
+      camera->setFront(glm::normalize(front));
     }
   };
 
-  glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);  // wireframe mode
-  // glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+  // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);  // wireframe mode
+  glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
   glEnable(GL_DEPTH_TEST);  // enable depth test (use to hide the object behind another object)
-  glClearColor(1.f, 1.f, 1.f, 1.f);  // set clear color
+  // glClearColor(1.f, 1.f, 1.f, 1.f);  // set clear color
+  glClearColor(0.f, 0.f, 0.f, 1.f);  // set clear color
 
   glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);  // hide cursor and lock it in window
 
@@ -183,29 +179,12 @@ auto main(int argc, char** argv) -> int {
     delta_time = current_frame_time - last_frame_time;
     last_frame_time = current_frame_time;
 
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
     process_window_state(window);
     process_input(window, delta_time);
 
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    // Use the shader program and update uniform variable
-
-    shader.use();
-
-    GLfloat r = std::sin(current_frame_time) / 2.0f + 0.3f;
-    GLfloat g = std::cos(current_frame_time) / 2.0f + 0.4f;
-    GLfloat b = std::sin(current_frame_time) / 2.0f + 0.5f;
-    GLfloat a = static_cast<int>(current_frame_time) % 2 == 0 ? 1.0f : 0.0f;
-    shader.setGlobalColor({ r, g, b, a });
-
-    auto radians = static_cast<float>(current_frame_time) * glm::radians(50.0f);
-    object->setModel(glm::rotate(glm::mat4{ 1.0f }, radians, { 0.5f, 1.0f, 0.0f }));
-
-    shader.setModel(object->getScaledModel());
-    shader.setView(camera.view());
-    shader.setProjection(screen.projection());
-
-    object->draw();
+    scene.drawObjects(screen.projection());
 
     glfwSwapBuffers(window);  // swap front and back buffers
     glfwPollEvents();  // poll for and process events
