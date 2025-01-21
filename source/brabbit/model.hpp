@@ -1,38 +1,27 @@
 #pragma once
 
-#include <string_view>
-#include <vector>
-
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
-#include <brabbit/scene.hpp>
+#include <brabbit/mesh.hpp>
+#include <brabbit/scene_object.hpp>
 
 namespace brabbit {
 
-  class Model {
+  class Model : public SceneObject {
    public:
-    explicit Model(std::string_view model_name);
-    virtual ~Model() = default;
+    explicit Model(std::unique_ptr<Mesh>& mesh);
+    explicit Model(Mesh* mesh);
+    virtual ~Model() override;
 
    public:
-    auto vertices() const -> const std::vector<glm::vec3>&;
-    auto verticesData() const -> const float*;
-    auto verticesSize() const -> std::size_t;
-
-    auto normals() const -> const std::vector<glm::vec3>&;
-    auto normalsData() const -> const float*;
-    auto normalsSize() const -> std::size_t;
-
-    auto indices() const -> const std::vector<glm::uvec3>&;
-    auto indicesData() const -> const glm::uint*;
-    auto indicesSize() const -> std::size_t;
+    auto getMesh() const -> const Mesh*;
 
    protected:
-    std::vector<glm::vec3> vertices_{};
-    std::vector<glm::vec3> normals_{};
-    std::vector<glm::uvec3> indices_{};
+    auto draw() -> void override;
+
+   private:
+    Mesh* mesh_{ nullptr };
+    unsigned int vertex_vbo_{ 0 };
+    unsigned int index_ebo_{ 0 };
+    unsigned int normal_vbo_{ 0 };
   };
 
 }  // namespace brabbit

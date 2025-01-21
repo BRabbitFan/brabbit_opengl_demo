@@ -1,8 +1,8 @@
 #include <memory>
 
 #include <brabbit/camera.hpp>
+#include <brabbit/mesh.hpp>
 #include <brabbit/model.hpp>
-#include <brabbit/model_object.hpp>
 #include <brabbit/scene.hpp>
 #include <brabbit/shader.hpp>
 #include <brabbit/window.hpp>
@@ -30,9 +30,9 @@ auto main(int argc, char** argv) -> int {
   camera->setPosition({ 0.0f, 0.0f, 3.0f });
   light->setLampVisible(true);
 
-  auto  model  = std::make_unique<brabbit::Model>("cube.stl"sv);
-  auto* object = scene->emplaceObject<brabbit::ModelObject>(model);
-  if (!object) {
+  auto  mesh  = std::make_unique<brabbit::Mesh>("cube.stl"sv);
+  auto* model = scene->emplaceObject<brabbit::Model>(mesh);
+  if (!model) {
     return -1;
   }
 
