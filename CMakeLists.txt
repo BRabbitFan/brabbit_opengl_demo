@@ -80,6 +80,10 @@ add_dependencies(opengl_demo
   resource
 )
 
+target_compile_definitions(opengl_demo PRIVATE
+  STB_IMAGE_WRITE_IMPLEMENTATION
+)
+
 target_link_libraries(opengl_demo PRIVATE
   OpenGL::GL
   glad::glad

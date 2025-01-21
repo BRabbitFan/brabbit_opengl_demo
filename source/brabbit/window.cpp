@@ -1,4 +1,7 @@
+#include <filesystem>
+
 #include <brabbit/window.hpp>
+#include <stb/stb_image_write.h>
 
 namespace brabbit {
 
@@ -65,7 +68,7 @@ namespace brabbit {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
     glEnable(GL_DEPTH_TEST);  // enable depth test (use to hide the object behind another object)
-    glClearColor(0.7f, 0.7f, 0.7f, 1.0f);  // set clear color
+    glClearColor(0.7f, 0.7f, 0.7f, 0.0f);  // set clear color
   }
 
   Window::~Window() {
@@ -151,7 +154,7 @@ namespace brabbit {
       return -1;
     }
 
-    const auto update_window_size = [this]() {
+    const auto before_process_frame = [this](double delta_time) {
       int width, height;
       glfwGetWindowSize(handle_, &width, &height);
 
@@ -169,6 +172,20 @@ namespace brabbit {
       }
     };
 
+    const auto after_process_frame = [this](double delta_time) {
+      if (glfwGetKey(handle_, GLFW_KEY_ENTER) == GLFW_PRESS) {
+        auto screenshot = generateScreenshot();
+        auto path = std::filesystem::current_path() / "screenshot.png"sv;
+        auto path_str = path.string();
+        stbi_write_png(path_str.c_str(),
+                      screenshot.width,
+                      screenshot.height,
+                      4,
+                      screenshot.pixels.data(),
+                      screenshot.width * 4);
+      }
+    };
+
     auto delta = 0.0;
     auto prev = 0.0;
     while (!glfwWindowShouldClose(handle_)) {
@@ -178,17 +195,39 @@ namespace brabbit {
 
       glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-      update_window_size();
+      before_process_frame(delta);
       scene_->processFrame(delta);
-
-      // process_input(handle_, delta_time);
-      // scene->drawObjects();
+      after_process_frame(delta);
 
       glfwSwapBuffers(handle_);  // swap front and back buffers
       glfwPollEvents();  // poll for and process events
     }
 
     return 0;
+  }
+
+  auto Window::generateScreenshot() const -> Screenshot {
+    auto pixels = std::vector<unsigned char>(width_ * height_ * 4);
+
+    glFinish();
+    glReadPixels(0, 0, width_, height_, GL_RGBA, GL_UNSIGNED_BYTE, pixels.data());
+
+    // flip the image vertically
+    const auto row_size = width_ * 4;
+    auto temp = decltype(pixels)(row_size);
+    for (std::size_t row = 0; row < height_ / 2; ++row) {
+      auto top = pixels.data() + row * row_size;
+      auto bottom = pixels.data() + (height_ - row - 1) * row_size;
+      std::memcpy(temp.data(), top, row_size);
+      std::memcpy(top, bottom, row_size);
+      std::memcpy(bottom, temp.data(), row_size);
+    }
+
+    return {
+      .width = width_,
+      .height = height_,
+      .pixels = std::move(pixels),
+    };
   }
 
 }  // namespace brabbit

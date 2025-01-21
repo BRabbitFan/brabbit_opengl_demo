@@ -15,6 +15,12 @@
 
 namespace brabbit {
 
+  struct Screenshot {
+    std::size_t                width{ 0 };
+    std::size_t                height{ 0 };
+    std::vector<unsigned char> pixels{};
+  };
+
   class Window {
    public:
     explicit Window(std::string_view title);
@@ -51,6 +57,10 @@ namespace brabbit {
 
    public:
     auto executeLoop() -> int;
+
+   public:
+    [[nodiscard]]
+    auto generateScreenshot() const -> Screenshot;
 
    private:
     GLFWwindow* handle_{ nullptr };
